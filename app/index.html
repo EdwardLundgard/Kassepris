@@ -150,6 +150,40 @@ header.compact::after{display:none}
 .cmp{display:flex;justify-content:space-between;padding:6px 0;font-variant-numeric:tabular-nums}
 .cmp.best{font-weight:800;color:var(--green)}
 .wrap{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+
+/* Matlagingsmodus */
+.btn-cook{width:100%;margin-top:8px;padding:12px;border:0;border-radius:12px;background:var(--ink);color:#fff;font:inherit;font-weight:700;font-size:15px;cursor:pointer}
+.cook{position:fixed;inset:0;z-index:999;background:#13221a;color:#fff;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 14px) 0 calc(env(safe-area-inset-bottom) + 14px)}
+.cook-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 18px}
+.cook-title{font-weight:700;font-size:15px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cook-x{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:99px;width:38px;height:38px;font-size:20px;flex:none;cursor:pointer}
+.cook-bar{display:flex;gap:5px;padding:12px 18px 0}
+.cook-bar span{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.18);transition:background .3s}
+.cook-bar span.on{background:#7cc48f}
+.cook-view{flex:1;overflow:hidden;position:relative}
+.cook-track{display:flex;height:100%;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.cook-slide{flex:0 0 100%;height:100%;overflow-y:auto;padding:26px 24px;display:flex;flex-direction:column;justify-content:center}
+.cook-kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#7cc48f;margin-bottom:12px}
+.cook-step{font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:clamp(26px,7vw,38px);line-height:1.2;font-weight:600;margin:0}
+.cook-h{font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:30px;font-weight:800;margin:0 0 16px}
+.cook-ing{list-style:none;margin:0;padding:0}
+.cook-ing li{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.1);font-size:18px;cursor:pointer}
+.cook-ing li i{width:24px;height:24px;border-radius:7px;border:2px solid rgba(255,255,255,.4);flex:none;display:grid;place-items:center;font-style:normal;font-size:14px}
+.cook-ing li.on{opacity:.45;text-decoration:line-through}
+.cook-ing li.on i{background:#7cc48f;border-color:#7cc48f;color:#13221a}
+.cook-note,.cook-tip{margin-top:20px;padding:14px 16px;border-radius:14px;background:rgba(255,255,255,.08);font-size:15px;line-height:1.45}
+.cook-tip b,.cook-note b{color:#f3c64f}
+.cook-timer{margin-top:24px;align-self:flex-start;background:#f3c64f;color:#13221a;border:0;border-radius:99px;padding:12px 18px;font:inherit;font-weight:800;font-size:16px;cursor:pointer}
+.cook-timer.run{background:#fff}
+.cook-timer.done{background:#ff7a59;color:#fff;animation:cookpulse 1s infinite}
+@keyframes cookpulse{50%{transform:scale(1.05)}}
+.cook-nav{display:flex;gap:10px;padding:0 18px}
+.cook-nav button{flex:1;padding:16px;border:0;border-radius:14px;font:inherit;font-weight:700;font-size:16px;cursor:pointer}
+.cook-prev{background:rgba(255,255,255,.12);color:#fff}
+.cook-next{background:#7cc48f;color:#13221a}
+.cook-prev:disabled{opacity:.3}
+.cook-hint{text-align:center;font-size:12px;opacity:.5;margin:10px 0 0}
+body.cooking{overflow:hidden}
 </style>
 </head>
 <body>
@@ -658,6 +692,7 @@ function render(){
     if(r.side) h += `<span class="chip">Med ${r.side.toLowerCase()}</span> `;
     if(d.used.length) h += `<span class="badge">Bruker rester: ${d.used.join(', ').toLowerCase()}</span>`;
     h += `<div class="actions"><button class="btn-ghost" data-open="${i}">${open?'Skjul oppskrift':'Vis oppskrift'}</button><button class="btn-plain" data-swap="${i}">Bytt rett</button></div>`;
+    h += `<button class="btn-cook" data-cook="${i}">Start matlaging</button>`;
     if(open){
       h += `<div class="detail"><b>Ingredienser for ${P} ${P>1?'personer':'person'}</b><ul>`;
       for(const [k,a] of Object.entries(r.ing)) h += `<li>${fmtQty(a*P,ING[k].u)} ${ING[k].n.toLowerCase()}</li>`;
@@ -851,6 +886,66 @@ $('rsave').onclick = ()=>{
   $('ramount').value=''; $('rstatus').innerHTML='';
   save(); render(); showTab('receipt');
 };
+
+
+// Matlagingsmodus: én skjerm per steg
+const COOK = {i:0, n:0, el:null, lock:null, timers:{}, got:{}};
+function cookEsc(x){ return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function openCook(dayIdx){
+  const d = S.plan[dayIdx]; const r = RMAP[d && (d.id||d)] || RMAP[S.plan[dayIdx]]; if(!r) return;
+  const P = S.settings.P;
+  const ing = Object.entries(r.ing).map(([k,a])=>`<li data-ci="${k}"><i></i><span>${fmtQty(a*P,ING[k].u)} ${ING[k].n.toLowerCase()}</span></li>`).join('');
+  const note = S.notes[r.id] ? `<div class="cook-note"><b>Dine notater</b><br>${cookEsc(S.notes[r.id])}</div>` : '';
+  const slides = [`<div class="cook-slide"><div class="cook-kicker">Før du starter</div><h2 class="cook-h">Finn frem dette</h2>${r.side?`<p style="margin:-8px 0 12px;opacity:.75">Med ${r.side.toLowerCase()}</p>`:''}<ul class="cook-ing">${ing}</ul>${note}</div>`];
+  r.s.forEach((x,k)=>{
+    const m = x.match(/(\d+)\s*minutt/i);
+    const tip = (k===r.s.length-1 && r.tip) ? `<div class="cook-tip"><b>Kokketips</b><br>${r.tip}</div>` : '';
+    slides.push(`<div class="cook-slide"><div class="cook-kicker">Steg ${k+1} av ${r.s.length}</div><p class="cook-step">${x}</p>${m?`<button class="cook-timer" data-ct="${k}" data-min="${m[1]}">Start tidtaker ${m[1]} min</button>`:''}${tip}</div>`);
+  });
+  slides.push(`<div class="cook-slide" style="text-align:center;align-items:center"><div style="font-size:64px">🍽️</div><h2 class="cook-h" style="margin-top:10px">Velbekomme!</h2><p style="opacity:.8;font-size:17px;max-width:320px">Ta gjerne et bilde av retten under «Vis oppskrift». Da ser ukeplanen ut som din egen mat.</p></div>`);
+  COOK.n = slides.length; COOK.i = 0; COOK.got = {};
+  const el = document.createElement('div'); el.className='cook'; el.setAttribute('role','dialog'); el.setAttribute('aria-label','Matlaging: '+r.n);
+  el.innerHTML = `<div class="cook-top"><div class="cook-title">${r.n}</div><button class="cook-x" aria-label="Avslutt matlaging">×</button></div><div class="cook-bar">${slides.map(()=>'<span></span>').join('')}</div><div class="cook-view"><div class="cook-track">${slides.join('')}</div></div><div class="cook-nav"><button class="cook-prev">Tilbake</button><button class="cook-next">Neste</button></div><p class="cook-hint">Sveip eller trykk Neste</p>`;
+  document.body.appendChild(el); document.body.classList.add('cooking'); COOK.el = el;
+  let x0=null, y0=null;
+  const view = el.querySelector('.cook-view');
+  view.addEventListener('touchstart',e=>{ x0=e.touches[0].clientX; y0=e.touches[0].clientY; },{passive:true});
+  view.addEventListener('touchend',e=>{ if(x0===null) return; const dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; if(Math.abs(dx)>50 && Math.abs(dx)>Math.abs(dy)) cookGo(COOK.i+(dx<0?1:-1)); x0=null; },{passive:true});
+  el.addEventListener('click',e=>{
+    if(e.target.closest('.cook-x')) return closeCook();
+    if(e.target.closest('.cook-prev')) return cookGo(COOK.i-1);
+    if(e.target.closest('.cook-next')) return COOK.i>=COOK.n-1 ? closeCook() : cookGo(COOK.i+1);
+    const li = e.target.closest('[data-ci]'); if(li){ li.classList.toggle('on'); li.querySelector('i').textContent = li.classList.contains('on')?'✓':''; return; }
+    const t = e.target.closest('[data-ct]'); if(t) cookTimer(t);
+  });
+  cookGo(0);
+  try{ if(navigator.wakeLock) navigator.wakeLock.request('screen').then(l=>{COOK.lock=l;}).catch(()=>{}); }catch(e){}
+}
+function cookGo(i){
+  if(!COOK.el) return; COOK.i = Math.max(0, Math.min(COOK.n-1, i));
+  COOK.el.querySelector('.cook-track').style.transform = `translateX(${-COOK.i*100}%)`;
+  COOK.el.querySelectorAll('.cook-bar span').forEach((b,k)=>b.classList.toggle('on', k<=COOK.i));
+  COOK.el.querySelector('.cook-prev').disabled = COOK.i===0;
+  COOK.el.querySelector('.cook-next').textContent = COOK.i===0 ? 'Start' : (COOK.i>=COOK.n-1 ? 'Ferdig' : 'Neste');
+}
+function cookBeep(){ try{ const a=new (window.AudioContext||window.webkitAudioContext)(); [0,.4,.8].forEach(t=>{ const o=a.createOscillator(), g=a.createGain(); o.frequency.value=880; o.connect(g); g.connect(a.destination); g.gain.setValueAtTime(.25,a.currentTime+t); o.start(a.currentTime+t); o.stop(a.currentTime+t+.25); }); }catch(e){} if(navigator.vibrate) navigator.vibrate([300,150,300]); }
+function cookTimer(btn){
+  const k = btn.dataset.ct, cur = COOK.timers[k];
+  if(cur){ clearInterval(cur.id); delete COOK.timers[k]; btn.className='cook-timer'; btn.textContent=`Start tidtaker ${btn.dataset.min} min`; return; }
+  const end = Date.now() + (+btn.dataset.min)*60000; btn.className='cook-timer run';
+  const tick = ()=>{ const left = Math.max(0, Math.round((end-Date.now())/1000));
+    if(left<=0){ clearInterval(COOK.timers[k].id); delete COOK.timers[k]; btn.className='cook-timer done'; btn.textContent='Tiden er ute!'; cookBeep(); return; }
+    btn.textContent = `${Math.floor(left/60)}:${String(left%60).padStart(2,'0')}  ·  trykk for å stoppe`; };
+  COOK.timers[k] = {id:setInterval(tick,500)}; tick();
+}
+function closeCook(){
+  if(!COOK.el) return; Object.values(COOK.timers).forEach(t=>clearInterval(t.id)); COOK.timers={};
+  COOK.el.remove(); COOK.el=null; document.body.classList.remove('cooking');
+  if(COOK.lock){ COOK.lock.release().catch(()=>{}); COOK.lock=null; }
+}
+document.addEventListener('click',e=>{ const c = e.target.closest('[data-cook]'); if(c) openCook(+c.dataset.cook); });
+document.addEventListener('keydown',e=>{ if(!COOK.el) return; if(e.key==='ArrowRight') cookGo(COOK.i+1); if(e.key==='ArrowLeft') cookGo(COOK.i-1); if(e.key==='Escape') closeCook(); });
+document.addEventListener('visibilitychange',()=>{ if(COOK.el && document.visibilityState==='visible' && navigator.wakeLock && !COOK.lock) navigator.wakeLock.request('screen').then(l=>{COOK.lock=l;}).catch(()=>{}); });
 
 $('heroDishes').innerHTML = dishSvg('taco') + dishSvg('bolo') + dishSvg('laks');
 load();
