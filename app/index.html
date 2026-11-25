@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kassepris">
+<meta name="theme-color" content="#1f5c3f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+
+<title>Kassepris</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f6f2; --card:#ffffff; --ink:#1c2420; --muted:#66716b; --line:#e3e8e2;
+  --green:#1f7a4d; --green-soft:#e3f2ea; --amber:#b86b00; --amber-soft:#fdf1df;
+  --red:#b3261e; --red-soft:#fbe6e4; --radius:16px;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:18px 16px 60px}
+header{background:linear-gradient(135deg,#1f7a4d 0%,#2e9d63 60%,#7cc48f 100%);color:#fff;border-radius:22px;padding:22px 20px 0;margin-bottom:16px;overflow:hidden;position:relative}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.2);display:grid;place-items:center;color:#fff;font-weight:800;font-size:16px}
+h1{font-size:26px;margin:0;font-weight:800;letter-spacing:-.02em}
+.tag{color:rgba(255,255,255,.88);font-size:15px;margin:8px 0 0;max-width:300px}
+.hero-dishes{display:flex;justify-content:center;gap:4px;margin-top:14px;transform:translateY(18px)}
+.hero-dishes svg{width:92px;height:92px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.18))}
+.hero-dishes svg:nth-child(2){width:112px;height:112px;margin-top:-14px}
+.dish-img{height:150px;border-radius:12px;margin:-2px -2px 12px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.dish-img svg.food{width:132px;height:132px;filter:drop-shadow(0 8px 10px rgba(0,0,0,.12));position:relative;z-index:1}
+.dish-img.photo{background-size:cover;background-position:center;height:190px}
+.dish-img .dots{position:absolute;inset:0;opacity:.5}
+.dish-img .time{position:absolute;right:10px;top:10px;background:rgba(255,255,255,.92);font-size:12px;font-weight:700;padding:4px 9px;border-radius:99px;z-index:2}
+.day{padding:12px 12px 14px;box-shadow:0 2px 10px rgba(30,60,40,.05)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 12px;font-weight:700}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafbf9;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+button{font:inherit;cursor:pointer;border:none;border-radius:11px;padding:12px 14px;font-weight:600;font-size:15px}
+.btn{background:var(--green);color:#fff;width:100%;margin-top:12px}
+.btn:active{transform:scale(.99)}
+.btn-ghost{background:var(--green-soft);color:var(--green);padding:8px 12px;font-size:13px}
+.btn-plain{background:#f0f2ef;color:var(--ink);padding:8px 12px;font-size:13px}
+.note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.45}
+.big{font-size:34px;font-weight:800;letter-spacing:-.02em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.bar{height:10px;background:#edf0ec;border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.bar>div{height:100%;background:var(--green);border-radius:99px;transition:width .4s}
+.bar.over>div{background:var(--red)}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.pill{border-radius:12px;padding:10px 12px}
+.pill small{display:block;font-size:11px;font-weight:600;color:var(--muted);margin-bottom:2px}
+.pill b{font-size:18px}
+.p-green{background:var(--green-soft)} .p-amber{background:var(--amber-soft)}
+.tabs{display:flex;gap:6px;background:#e8ece7;padding:5px;border-radius:13px;margin-bottom:14px;position:sticky;top:8px;z-index:5}
+.tab{flex:1;background:transparent;color:var(--muted);padding:9px 4px;font-size:13px}
+.tab.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.day{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;background:#fff}
+.day-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.dname{font-size:11px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.06em}
+.rname{font-size:16px;font-weight:700;margin:3px 0}
+.meta{font-size:12px;color:var(--muted)}
+.badge{display:inline-block;font-size:11px;font-weight:600;background:var(--amber-soft);color:var(--amber);padding:4px 8px;border-radius:99px;margin-top:8px}
+.actions{display:flex;gap:6px;margin-top:10px}
+.chip{display:inline-block;font-size:11px;font-weight:600;background:var(--green-soft);color:var(--green);padding:4px 8px;border-radius:99px;margin-top:8px}
+.tip{background:#fff8e6;border-left:4px solid #f0b429;border-radius:10px;padding:10px 12px;margin:4px 0 12px;font-size:13px}
+.detail{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px;font-size:14px;line-height:1.5}
+.detail ul,.detail ol{margin:4px 0 10px;padding-left:20px}
+.item{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);font-size:14px}
+.item:last-child{border-bottom:none}
+.item input{width:20px;height:20px;accent-color:var(--green);flex:none}
+.item .nm{flex:1}
+.item .nm small{display:block;color:var(--muted);font-size:12px}
+.item.done .nm{text-decoration:line-through;color:var(--muted)}
+.price{font-weight:700;white-space:nowrap}
+.total{display:flex;justify-content:space-between;font-weight:800;font-size:16px;padding-top:12px;margin-top:4px;border-top:2px solid var(--ink)}
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:24px 8px}
+.status{border-radius:12px;padding:12px;font-size:14px;margin-top:12px;line-height:1.45}
+.s-ok{background:var(--green-soft);color:var(--green)} .s-bad{background:var(--red-soft);color:var(--red)}
+.receipt-img{max-width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line)}
+.hidden{display:none}
+.saved{font-size:12px;color:var(--green);margin-top:6px;min-height:16px}
+
+/* ===== Design v2 ===== */
+:root{--bg:#fbf6ee;--card:#ffffff;--ink:#1d2a22;--muted:#6b7068;--line:#efe7da;--green:#1f5c3f;--green-soft:#e6f0e8;--amber:#b4561d;--amber-soft:#fdeee2;--tomato:#e8552d;--butter:#f6c453;--radius:22px}
+body{background:var(--bg);background-image:radial-gradient(circle at 10% 0%, #fff3df 0, transparent 40%),radial-gradient(circle at 100% 30%, #eef5ec 0, transparent 35%)}
+.wrap{padding:14px 16px 120px}
+h1,.card h2,.big,.rname,.pill b{font-family:'Bricolage Grotesque',Inter,sans-serif}
+header{background:#1f5c3f;border-radius:30px;padding:26px 22px 0;box-shadow:0 18px 40px -18px rgba(31,92,63,.55)}
+header::before{content:"";position:absolute;width:260px;height:260px;border-radius:50%;background:#2c7a54;right:-90px;top:-110px}
+header::after{content:"";position:absolute;width:140px;height:140px;border-radius:50%;background:var(--butter);opacity:.9;left:-50px;bottom:-60px}
+header>*{position:relative;z-index:1}
+h1{font-size:34px;letter-spacing:-.03em}
+.logo-mark{background:var(--tomato);border-radius:14px;width:42px;height:42px;font-size:15px;box-shadow:0 6px 14px -4px rgba(232,85,45,.6)}
+.tag{font-size:16px;color:#e4efe7}
+.card{border:none;border-radius:var(--radius);padding:20px;box-shadow:0 1px 2px rgba(60,40,10,.04),0 10px 30px -14px rgba(60,40,10,.18)}
+.card h2{font-size:20px;letter-spacing:-.01em;margin-bottom:14px}
+input,select,textarea{background:#fbf8f3;border:1.5px solid #efe6d8;border-radius:14px;padding:12px 14px;font-weight:500}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--green);background:#fff}
+.btn{background:var(--tomato);border-radius:16px;padding:16px;font-size:16px;font-weight:700;box-shadow:0 10px 22px -10px rgba(232,85,45,.8);transition:transform .15s}
+.btn:active{transform:scale(.98)}
+.btn-ghost{background:var(--green-soft);color:var(--green);border-radius:12px;font-weight:700}
+.btn-plain{background:#f4efe6;border-radius:12px;font-weight:700}
+.big{font-size:52px;line-height:1;margin:6px 0 2px;color:var(--green)}
+.bar{height:14px;background:#f1ebe0}
+.bar>div{background:linear-gradient(90deg,#2c7a54,#7cc48f)}
+.bar.over>div{background:linear-gradient(90deg,#e8552d,#f6a04d)}
+.pill{border-radius:16px;padding:14px}
+.pill b{font-size:22px}
+.p-amber{background:#fdeee2} .p-green{background:#e6f0e8}
+.tabs{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;top:auto;width:min(528px,calc(100% - 24px));background:rgba(29,42,34,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:24px;padding:7px;margin:0;z-index:20;box-shadow:0 14px 30px -10px rgba(0,0,0,.45);padding-bottom:calc(7px + env(safe-area-inset-bottom,0px))}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;color:#b9c4bc;font-size:11px;font-weight:600;padding:8px 2px;border-radius:18px}
+.tab.on{background:var(--butter);color:var(--ink);box-shadow:none}
+.day{border:none;border-radius:24px;padding:10px 10px 16px;box-shadow:0 1px 2px rgba(60,40,10,.04),0 12px 28px -16px rgba(60,40,10,.25);margin-bottom:16px}
+.day .day-top,.day>.chip,.day>.badge,.day>.actions,.day>.detail{margin-left:8px;margin-right:8px}
+.dish-img{border-radius:18px;height:170px;margin:0 0 14px}
+.dish-img svg.food{width:150px;height:150px}
+.dname{color:var(--tomato);letter-spacing:.1em}
+.rname{font-size:21px;letter-spacing:-.01em;margin:4px 0}
+.chip{background:var(--green-soft);font-size:12px;padding:5px 10px}
+.badge{background:#fff4d6;color:#8a5a00;font-size:12px;padding:5px 10px}
+.tip{background:#fff7e3;border-left:none;border-radius:14px}
+.item{border-bottom:1px solid var(--line)}
+.item input[type=checkbox]{width:22px;height:22px;accent-color:var(--green)}
+.price{font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:16px}
+.total{border-top:2px dashed #e2d7c4;font-family:'Bricolage Grotesque',Inter,sans-serif;font-size:19px}
+.status{border-radius:16px}
+.note{font-size:13px}
+.gear{margin-left:auto;background:rgba(255,255,255,.15);color:#fff;border-radius:14px;padding:9px;display:grid;place-items:center}
+.gear.hidden{display:none}
+header.compact{padding-bottom:22px}
+header.compact::after{display:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.chipbtn{background:#f4efe6;color:var(--ink);border-radius:99px;padding:9px 14px;font-size:14px;font-weight:600;border:1.5px solid transparent}
+.chipbtn.on{background:#fdeee2;border-color:var(--tomato);color:#a83a17}
+.chipbtn.on::before{content:"✕ ";font-size:11px}
+.chipbtn.like.on{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.chipbtn.like.on::before{content:"♥ "}
+.chipbtn.store.on,.chipbtn.mode.on{background:var(--green-soft);border-color:var(--green);color:var(--green)}
+.chipbtn.store.on::before,.chipbtn.mode.on::before{content:"✓ "}
+.storehead{display:flex;justify-content:space-between;margin:18px 0 4px;font-weight:800;color:var(--green)}
+.cmp{display:flex;justify-content:space-between;padding:6px 0;font-variant-numeric:tabular-nums}
+.cmp.best{font-weight:800;color:var(--green)}
+.wrap{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><div class="logo-mark">kr</div><h1>Kassepris</h1><button id="openSettings" class="gear hidden" aria-label="Innstillinger"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <p class="tag">Budsjettet ditt stemmer med kvitteringen.</p>
+    <div class="hero-dishes" id="heroDishes"></div>
+  </header>
+
+  <div class="card" id="setupCard">
+    <h2 id="setupTitle">Velkommen! La oss sette opp appen</h2>
+    <p class="note" id="setupIntro" style="margin:-6px 0 14px">Fyll ut dette én gang. Du kan endre det senere under innstillinger.</p>
+    <div class="grid">
+      <div><label for="budget">Ukebudsjett (kr)</label><input id="budget" type="number" inputmode="numeric" value="600" min="100" step="50"></div>
+      <div><label for="persons">Personer</label><select id="persons"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+      <div><label for="days">Middager</label><select id="days"><option>3</option><option>4</option><option selected>5</option><option>6</option><option>7</option></select></div>
+    </div>
+    <div style="margin-top:16px"><label>Hvilke butikker handler du i?</label>
+      <div class="chips" id="storeChips">
+        <button type="button" class="chipbtn store" data-store="SPAR_NO">Spar</button>
+        <button type="button" class="chipbtn store" data-store="MENY_NO">Meny</button>
+        <button type="button" class="chipbtn store" data-store="BUNNPRIS">Bunnpris</button>
+        <button type="button" class="chipbtn store" data-store="JOKER_NO">Joker</button>
+        <button type="button" class="chipbtn store" data-store="KIWI">Kiwi</button>
+        <button type="button" class="chipbtn store" data-store="REMA_1000">Rema 1000</button>
+        <button type="button" class="chipbtn store" data-store="COOP_EXTRA">Coop Extra</button>
+      </div>
+      <div id="modeBox" style="margin-top:10px">
+        <label>Hvordan vil du handle?</label>
+        <div class="chips">
+          <button type="button" class="chipbtn mode" data-mode="one">Én butikk, billigst for uka</button>
+          <button type="button" class="chipbtn mode" data-mode="many">Flere butikker, billigst per vare</button>
+        </div>
+        <p class="note" id="modeNote" style="margin-top:6px"></p>
+      </div>
+    </div>
+    <div style="margin-top:16px"><label>Allergier og ting du ikke spiser</label>
+      <div class="chips" id="exclChips">
+        <button type="button" class="chipbtn" data-ex="gluten">Gluten</button>
+        <button type="button" class="chipbtn" data-ex="melk">Melk og laktose</button>
+        <button type="button" class="chipbtn" data-ex="egg">Egg</button>
+        <button type="button" class="chipbtn" data-ex="fisk">Fisk</button>
+        <button type="button" class="chipbtn" data-ex="svin">Svinekjøtt</button>
+        <button type="button" class="chipbtn" data-ex="kjott">Vegetar</button>
+      </div>
+      <p class="note" style="margin-top:6px">Retter med disse ingrediensene blir ikke foreslått. Sjekk alltid varedeklarasjonen ved allergi, siden innhold varierer mellom merker.</p>
+    </div>
+    <div style="margin-top:16px"><label>Hva liker du å spise?</label>
+      <div class="chips" id="likeChips">
+        <button type="button" class="chipbtn like" data-like="pasta">Pasta</button>
+        <button type="button" class="chipbtn like" data-like="kylling">Kylling</button>
+        <button type="button" class="chipbtn like" data-like="fisk">Fisk og laks</button>
+        <button type="button" class="chipbtn like" data-like="kjottdeig">Kjøttdeig</button>
+        <button type="button" class="chipbtn like" data-like="texmex">Taco og tex-mex</button>
+        <button type="button" class="chipbtn like" data-like="husmann">Husmannskost</button>
+        <button type="button" class="chipbtn like" data-like="gryte">Gryter og supper</button>
+        <button type="button" class="chipbtn like" data-like="fredag">Pizza og burger</button>
+        <button type="button" class="chipbtn like" data-like="asia">Asiatisk</button>
+      </div>
+      <p class="note" style="margin-top:6px">Det du velger her kommer oftere i ukeplanen, så lenge budsjettet holder.</p>
+    </div>
+    <div class="grid" style="margin-top:6px">
+      <div><label>Hvor lang tid har du?</label><select id="maxTime"><option value="999">Ingen grense</option><option value="30">Maks 30 min</option><option value="45">Maks 45 min</option></select></div>
+    </div>
+    <button class="btn" id="make">Lagre og lag ukeplan</button>
+    <button class="btn-plain hidden" id="cancelSettings" style="width:100%;margin-top:8px;padding:12px">Avbryt</button>
+    <p class="note"><b>Hver rett er en hel middag.</b> Saus som blir riktig, tilbehør og brød er med i handlelisten, slik som i en matkasse.</p>
+    <p class="note">Prisene er hentet fra Kassalapp 8. november 2026. Varer der butikken mangler pris er merket i handlelisten. Kiwi, Rema 1000 og Coop har ikke ferske priser i Kassalapp. Der bygger appen opp dine egne priser fra handleturene dine, under Kvittering. Basisvarer som salt, pepper, olje og krydder regnes som noe du har hjemme.</p>
+  </div>
+
+  <div id="result" class="hidden">
+    <div class="card">
+      <div class="row"><span class="meta">Det du betaler i kassen</span><span class="meta" id="budgetLabel"></span></div>
+      <div class="big" id="kasse"></div>
+      <div class="bar" id="bar"><div id="barFill"></div></div>
+      <div class="meta" id="restLabel"></div>
+      <div class="meta" id="setupSummary" style="margin-top:10px"></div>
+      <button class="btn-ghost" id="newPlan" style="width:100%;margin-top:12px;padding:12px">Lag ny ukeplan</button>
+      
+    </div>
+
+    <div class="tabs">
+      <button class="tab on" data-tab="plan"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span>Ukeplan</span></button>
+      <button class="tab" data-tab="list"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14l-1.5 12a2 2 0 0 1-2 1.8h-7a2 2 0 0 1-2-1.8z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg><span>Handleliste</span></button>
+      <button class="tab" data-tab="left"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11h16a8 8 0 0 1-16 0z"/><path d="M8 7c0-2 2-2 2-4M13 7c0-2 2-2 2-4"/></svg><span>Rester</span></button>
+      <button class="tab" data-tab="receipt"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2h12v20l-3-2-3 2-3-2-3 2z"/><path d="M9 7h6M9 11h6M9 15h4"/></svg><span>Kvittering</span></button>
+    </div>
+
+    <div id="tab-plan"></div>
+    <div id="tab-list" class="hidden card"></div>
+    <div id="tab-left" class="hidden card"></div>
+    <div id="tab-receipt" class="hidden">
+      <div class="card">
+        <h2>Last opp kvitteringen</h2>
+        <label for="rimg">Bilde av kvitteringen</label>
+        <input id="rimg" type="file" accept="image/*">
+        <img id="rprev" class="receipt-img hidden" alt="Kvittering">
+        <div style="margin-top:12px"><label for="ramount">Totalbeløp på kvitteringen (kr)</label><input id="ramount" type="text" inputmode="decimal" placeholder="For eksempel 587"></div>
+        <button class="btn" id="rsave">Sjekk mot budsjettet</button>
+        <p class="note">I neste versjon leser appen beløpet fra bildet automatisk. Nå skriver du inn totalen selv.</p>
+        <div id="rstatus"></div>
+      </div>
+      <div class="card" id="myprices"></div>
+      <div class="card" id="rhist"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ING = {
+  kjottdeig:{n:'Kjøttdeig',u:'g',pack:400,p:55,l:'400 g'},
+  kylling:{n:'Kyllingfilet',u:'g',pack:600,p:89,l:'600 g'},
+  laks:{n:'Laksefilet, fryst',u:'g',pack:500,p:99,l:'500 g'},
+  bacon:{n:'Bacon',u:'g',pack:280,p:35,l:'280 g'},
+  pasta:{n:'Pasta',u:'g',pack:500,p:15,l:'500 g'},
+  ris:{n:'Ris',u:'g',pack:1000,p:25,l:'1 kg'},
+  poteter:{n:'Poteter',u:'g',pack:2000,p:30,l:'2 kg'},
+  linser:{n:'Røde linser',u:'g',pack:400,p:25,l:'400 g'},
+  tomater:{n:'Hakkede tomater',u:'g',pack:400,p:12,l:'400 g'},
+  kokos:{n:'Kokosmelk',u:'ml',pack:400,p:18,l:'400 ml'},
+  flote:{n:'Matfløte',u:'ml',pack:300,p:25,l:'3 dl'},
+  melk:{n:'Melk',u:'ml',pack:1000,p:23,l:'1 l'},
+  romme:{n:'Rømme',u:'ml',pack:300,p:22,l:'3 dl'},
+  ost:{n:'Revet ost',u:'g',pack:300,p:45,l:'300 g'},
+  smor:{n:'Smør',u:'g',pack:500,p:55,l:'500 g'},
+  egg:{n:'Egg',u:'stk',pack:12,p:45,l:'12 stk'},
+  tortilla:{n:'Tortillalefser',u:'stk',pack:8,p:30,l:'8 stk'},
+  taco:{n:'Tacokrydder',u:'pose',pack:1,p:12,l:'1 pose'},
+  buljong:{n:'Buljongterninger',u:'terning',pack:12,p:30,l:'12 stk'},
+  lok:{n:'Løk',u:'g',pack:1000,p:20,l:'1 kg nett'},
+  hvitlok:{n:'Hvitløk',u:'fedd',pack:10,p:10,l:'1 hode'},
+  gulrot:{n:'Gulrøtter',u:'g',pack:1000,p:20,l:'1 kg'},
+  paprika:{n:'Paprika',u:'stk',pack:1,p:12,l:'1 stk'},
+  brokkoli:{n:'Brokkoli',u:'stk',pack:1,p:25,l:'1 stk'},
+  purre:{n:'Purre',u:'stk',pack:1,p:15,l:'1 stk'},
+  salat:{n:'Isbergsalat',u:'stk',pack:1,p:20,l:'1 stk'},
+  agurk:{n:'Agurk',u:'stk',pack:1,p:15,l:'1 stk'},
+  frys:{n:'Frosne grønnsaker',u:'g',pack:750,p:30,l:'750 g'}
+};
+
+const RECIPES = [
+  {id:'bolo',n:'Spaghetti bolognese',t:30,ing:{kjottdeig:125,pasta:100,tomater:200,lok:50,hvitlok:1,gulrot:50},
+   s:['Hakk løk, hvitløk og gulrot. Fres i olje.','Brun kjøttdeigen sammen med grønnsakene.','Ha i tomatene og la sausen småkoke i 15 minutter. Smak til med salt og pepper.','Kok pastaen og server.']},
+  {id:'taco',n:'Taco',t:25,ing:{kjottdeig:125,tortilla:2,taco:0.25,paprika:0.25,salat:0.25,agurk:0.25,romme:50,ost:40},
+   s:['Brun kjøttdeigen og rør inn tacokrydder og litt vann.','Kutt paprika, salat og agurk.','Varm lefsene og server med rømme og ost.']},
+  {id:'curry',n:'Kyllingcurry med ris',t:30,ing:{kylling:150,kokos:100,ris:80,lok:50,paprika:0.5,hvitlok:1},
+   s:['Kok risen.','Fres løk, hvitløk og karri i olje.','Stek kyllingbiter gyllne, ha i paprika og kokosmelk.','La det småkoke i 10 minutter og server med ris.']},
+  {id:'laks',n:'Ovnsbakt laks med poteter og brokkoli',t:35,ing:{laks:125,poteter:250,brokkoli:0.25,smor:15},
+   s:['Kok potetene.','Legg laksen i en form med en klatt smør, salt og pepper. Bak på 200 grader i 15 til 20 minutter.','Kok brokkolien i 3 minutter og server alt sammen.']},
+  {id:'carb',n:'Pasta carbonara',t:20,ing:{pasta:100,bacon:70,egg:1,ost:30,flote:50},
+   s:['Kok pastaen.','Stek bacon sprøtt.','Visp egg, fløte og ost.','Bland alt i varm panne uten varme, slik at eggene ikke koker.']},
+  {id:'kpasta',n:'Kremet kyllingpasta',t:25,ing:{kylling:125,pasta:100,flote:75,brokkoli:0.25,ost:20,hvitlok:1},
+   s:['Kok pastaen.','Stek kyllingbiter med hvitløk.','Ha i fløte og brokkoli og la det småkoke i 5 minutter.','Rør inn ost og pasta.']},
+  {id:'omelett',n:'Omelett med grønnsaker og poteter',t:20,ing:{egg:3,paprika:0.25,lok:30,ost:30,melk:30,poteter:150},
+   s:['Skjær potetene i terninger og stek dem i panne.','Visp egg og melk.','Ha løk og paprika i pannen, hell over eggeblandingen og strø over ost.','Stek på lav varme til omeletten har satt seg.']},
+  {id:'linse',n:'Linsesuppe',t:30,ing:{linser:75,tomater:200,gulrot:75,lok:50,buljong:0.5,romme:30},
+   s:['Fres løk og gulrot.','Ha i linser, tomater, buljong og 3 dl vann per person.','Kok i 20 minutter og kjør suppen jevn om du vil.','Server med en skje rømme.']},
+  {id:'stris',n:'Stekt ris med egg',t:20,ing:{ris:80,egg:1.5,frys:150,hvitlok:1},
+   s:['Kok risen, gjerne dagen før.','Stek grønnsaker og hvitløk i varm panne.','Ha i risen og stek videre.','Skyv risen til siden, stek eggene og bland alt.']},
+  {id:'mos',n:'Kjøttdeigsaus med potetmos',t:35,ing:{kjottdeig:125,poteter:250,lok:50,melk:50,smor:10,buljong:0.5,gulrot:50},
+   s:['Kok potetene og mos dem med melk og smør.','Brun kjøttdeig, løk og gulrot.','Ha i buljong og litt vann, og la sausen tykne.','Server sausen over mosen.']},
+  {id:'purre',n:'Pastaskruer med bacon og rømme',t:20,ing:{pasta:100,bacon:70,lok:50,hvitlok:1,romme:50},
+   s:['Kok pastaen som anvist på pakken. Spaghetti fra handlelisten fungerer like bra som skruer.','Sprøstek bacon i en stekepanne og ta det ut av pannen.','Surr løk og hvitløk på middels varme til løken er myk. Krydre med salt og pepper.','Sil pastaen og vend inn rømme, løk og bacon.']},
+  {id:'wrap',n:'Kyllingwraps',t:20,ing:{kylling:125,tortilla:2,salat:0.25,agurk:0.25,romme:40,paprika:0.25},
+   s:['Stek kyllingstrimler med salt, pepper og krydder.','Kutt salat, agurk og paprika.','Fyll lefsene med kylling, grønnsaker og rømme.']}
+];
+const RMAP = Object.fromEntries(RECIPES.map(r=>[r.id,r]));
+// Ekte priser hentet fra Kassalapp 8. november 2026
+const KASSAL = {"kjottdeig": {"l": "Kjøttdeig 400 g First Price", "pack": 400, "p": {"SPAR_NO": 64.9, "MENY_NO": 64.9}}, "bacon": {"l": "Bacon 400 g First Price", "pack": 400, "p": {"JOKER_NO": 69.9, "SPAR_NO": 61.9, "MENY_NO": 61.9, "BUNNPRIS": 62.9}}, "pasta": {"l": "Spaghetti 1 kg First Price", "pack": 1000, "p": {"JOKER_NO": 24.9, "SPAR_NO": 19.9, "MENY_NO": 19.9, "BUNNPRIS": 20.9}}, "ris": {"l": "Jasminris 1 kg Eldorado", "pack": 1000, "p": {"SPAR_NO": 39.9, "MENY_NO": 41.5, "BUNNPRIS": 39.9}}, "linser": {"l": "Røde linser 380 g GoGreen", "pack": 380, "p": {"MENY_NO": 24.9}}, "tomater": {"l": "Hakkede tomater 390 g Eldorado", "pack": 390, "p": {"JOKER_NO": 16.9, "SPAR_NO": 15.9, "MENY_NO": 15.9, "BUNNPRIS": 15.9}}, "flote": {"l": "Matfløte 3 dl Tine", "pack": 300, "p": {"JOKER_NO": 26.9, "SPAR_NO": 25.9, "MENY_NO": 24.9, "ODA_NO": 22.5, "BUNNPRIS": 27.9}}, "melk": {"l": "Lettmelk 1 l Tine", "pack": 1000, "p": {"JOKER_NO": 23.9, "SPAR_NO": 23.5, "MENY_NO": 21.9, "ODA_NO": 19.4, "ENGROSSNETT_NO": 29.89, "BUNNPRIS": 23.9}}, "smor": {"l": "Meierismør 500 g Tine", "pack": 500, "p": {"JOKER_NO": 72.9, "SPAR_NO": 49.9, "MENY_NO": 68.9, "ODA_NO": 61.4, "BUNNPRIS": 71.9}}, "tortilla": {"l": "Tortilla 8 stk First Price", "pack": 8, "p": {"JOKER_NO": 14.9, "MENY_NO": 8.9, "BUNNPRIS": 12.9}}, "brokkoli": {"l": "Brokkoli 400 g", "pack": 1, "p": {"JOKER_NO": 34.9, "SPAR_NO": 32.9, "BUNNPRIS": 29.9, "MENY_NO": 19.9}}, "agurk": {"l": "Agurk", "pack": 1, "p": {"ODA_NO": 33.9}}, "frys": {"l": "Grønnsaksblanding 800 g First Price", "pack": 800, "p": {"JOKER_NO": 28.9, "SPAR_NO": 23.9, "MENY_NO": 23.9, "BUNNPRIS": 25.9}}, "tomatpure": {"l": "Tomatpuré 140 g Eldorado", "pack": 140, "p": {"JOKER_NO": 12.9, "SPAR_NO": 11.9, "MENY_NO": 11.9, "BUNNPRIS": 11.9}}, "soya": {"l": "Soyasaus 150 ml Kikkoman", "pack": 150, "p": {"JOKER_NO": 59.9, "SPAR_NO": 55.9, "MENY_NO": 56.9, "ODA_NO": 51.4, "ENGROSSNETT_NO": 59.43, "BUNNPRIS": 59.9, "FUDI": 46.9}}, "kylling": {"l": "Kyllingfilet 1,1 kg Prior", "pack": 1100, "p": {"BUNNPRIS": 199, "KIWI": 167}}, "ost": {"l": "Revet ost 300 g Tine", "pack": 300, "p": {"SPAR_NO": 39.9, "JOKER_NO": 53.9}}, "egg": {"l": "Egg 12 stk First Price", "pack": 12, "p": {"JOKER_NO": 32.9, "SPAR_NO": 27.9}}, "naan": {"l": "Naan 2 stk St. Maria", "pack": 2, "p": {"JOKER_NO": 23.73, "SPAR_NO": 32.9}}, "kokos": {"l": "Kokosmelk 250 ml Eldorado", "pack": 250, "p": {"SPAR_NO": 12.53, "MENY_NO": 18.9}}, "salat": {"l": "Isbergsalat", "pack": 1, "p": {"SPAR_NO": 20, "MENY_NO": 34.9, "JOKER_NO": 29.9}}, "paprika": {"l": "Paprika rød", "pack": 1, "p": {"SPAR_NO": 13.84, "MENY_NO": 13.48, "JOKER_NO": 16.72}}, "buljong": {"l": "Buljongterninger 16 stk Toro", "pack": 16, "p": {"JOKER_NO": 49.9}}};
+const BASE = {}; 
+const STORE_NAMES = {SPAR_NO:'Spar',MENY_NO:'Meny',BUNNPRIS:'Bunnpris',JOKER_NO:'Joker',KIWI:'Kiwi',REMA_1000:'Rema 1000',COOP_EXTRA:'Coop Extra'};
+const storeName = c => STORE_NAMES[c] || c;
+function priceAt(k, code){
+  if(!BASE[k]) BASE[k] = {p:ING[k].p, pack:ING[k].pack, l:ING[k].l};
+  const kp = KASSAL[k];
+  let r;
+  if(kp){
+    const vals = Object.values(kp.p).sort((a,b)=>a-b);
+    r = kp.p[code]!=null ? {p:kp.p[code], src:'ekte pris', real:true} : {p:vals[Math.floor(vals.length/2)], src:'pris fra annen butikk', real:false};
+    r.pack = kp.pack; r.l = kp.l;
+  } else r = {p:BASE[k].p, pack:BASE[k].pack, l:BASE[k].l, src:'anslag', real:false};
+  const mine = S.myPrices && S.myPrices[code] && S.myPrices[code][k];
+  if(mine){ r.p = mine.p; r.src = 'din pris ' + mine.d; r.real = true; }
+  return r;
+}
+function applyStore(code){
+  for(const k in ING){ const r = priceAt(k, code); Object.assign(ING[k], {p:r.p, pack:r.pack, l:r.l, src:r.src, real:r.real, at:code}); }
+}
+// Flere butikker: hver vare får laveste kjente pris blant valgte butikker
+function applyCheapest(codes){
+  for(const k in ING){
+    const all = codes.map(c=>Object.assign(priceAt(k,c),{at:c}));
+    const real = all.filter(r=>r.real);
+    const pick = (real.length?real:all).reduce((a,b)=>b.p<a.p?b:a);
+    Object.assign(ING[k], {p:pick.p, pack:pick.pack, l:pick.l, src:pick.src, real:pick.real, at:real.length?pick.at:null});
+  }
+}
+function applySettings(){
+  const st = S.settings; if(!st) { applyStore('SPAR_NO'); return; }
+  if(st.mode==='many' && st.stores.length>1) applyCheapest(st.stores); else applyStore(st.code);
+}
+// Sammenlign samme plan i hver valgt butikk
+function compareStores(plan){
+  const st = S.settings, out = [];
+  for(const c of st.stores){
+    applyStore(c);
+    const ev = evaluate(plan, st.P, st.f), keys = Object.keys(ev.buy);
+    out.push({code:c, cost:ev.cost, real:keys.filter(k=>ING[k].real).length, n:keys.length});
+  }
+  applySettings();
+  return out;
+}
+// Lag plan etter valgt handlemåte
+function buildPlan(avoid){
+  const st = S.settings, {B,P,N,f} = st;
+  if(st.stores.length>1){
+    applyCheapest(st.stores);
+    const plan = makePlan(B,P,N,f,avoid);
+    if(st.mode!=='many'){
+      const cmp = compareStores(plan);
+      const trusted = cmp.filter(x=>x.n && x.real/x.n>=0.5);
+      st.code = (trusted.length?trusted:cmp).reduce((a,b)=>b.cost<a.cost?b:a).code;
+    }
+    applySettings();
+    return plan;
+  }
+  st.code = st.stores[0]; applyStore(st.code);
+  return makePlan(B,P,N,f,avoid);
+}
+
+// Komplette middager: saus som fungerer, og tilbehøret er med i handlelisten
+Object.assign(ING, {
+  tomatpure:{n:'Tomatpuré',u:'g',pack:140,p:15,l:'140 g'},
+  naan:{n:'Naanbrød',u:'stk',pack:4,p:32,l:'4 stk'},
+  baguett:{n:'Baguett',u:'stk',pack:1,p:20,l:'1 stk'},
+  sitron:{n:'Sitron',u:'stk',pack:1,p:8,l:'1 stk'},
+  soya:{n:'Soyasaus',u:'ml',pack:150,p:25,l:'150 ml'}
+});
+const COMPLETE = {
+  bolo:{ing:{kjottdeig:125,pasta:100,tomater:200,tomatpure:15,lok:50,hvitlok:1,gulrot:50,ost:20}, side:'Pasta og revet ost',
+    s:['Hakk løk, hvitløk og gulrot. Fres i olje.','Brun kjøttdeigen, og fres tomatpuréen med i ett minutt.','Ha i tomatene og la sausen småkoke uten lokk i 15 minutter. Smak til med salt og pepper.','Kok pastaen og server med revet ost.'],
+    tip:'Fres tomatpuréen sammen med kjøttet før tomatene går i. Da blir sausen fyldigere og mindre syrlig.'},
+  taco:{side:'Lefser, grønnsaker, rømme og ost', tip:'La tacokrydder og litt vann koke inn til kjøttdeigen er saftig, ikke vannete.'},
+  curry:{ing:{kylling:150,kokos:100,tomatpure:15,gulrot:50,ris:80,naan:1,lok:50,hvitlok:1}, side:'Ris og naanbrød',
+    s:['Sett på risen.','Fres løk, hvitløk, karri og tomatpuré i olje i ett minutt.','Stek kyllingbiter og gulrot i strimler i 3 til 4 minutter.','Hell i kokosmelken og la currien småkoke uten lokk i 10 til 12 minutter til sausen tykner.','Varm naanbrødet i ovnen eller tørr panne, og server alt sammen.'],
+    tip:'Kokosmelk alene gir en tynn og rennende saus. Tomatpuré og 10 minutter uten lokk gjør den tykk og fyldig.'},
+  laks:{ing:{laks:125,poteter:250,brokkoli:0.25,smor:15,sitron:0.25}, side:'Poteter, brokkoli og sitron',
+    s:['Kok potetene.','Legg laksen i en form med en klatt smør, salt, pepper og sitronskiver. Bak på 200 grader i 15 minutter.','Kok brokkolien i 3 minutter og server alt sammen.'],
+    tip:'Ta laksen ut mens den fortsatt er litt blank i midten. Den blir ferdig av ettervarmen og holder seg saftig.'},
+  carb:{side:'Pasta og revet ost', tip:'Ta pannen av varmen før eggeblandingen går i, og bruk en skvett pastavann. Da blir sausen kremet og ikke eggerøre.'},
+  kpasta:{side:'Pasta og brokkoli', tip:'La fløten koke inn noen minutter før osten går i. Blir sausen for tykk, spe med litt pastavann.'},
+  omelett:{side:'Stekte poteter', tip:'Stek omeletten på lav varme med lokk. Da blir den saftig i midten uten å brenne seg under.'},
+  linse:{ing:{linser:75,tomater:200,gulrot:75,lok:50,buljong:0.5,romme:30,baguett:0.25}, side:'Rømme og baguett',
+    s:['Fres løk og gulrot.','Ha i linser, tomater, buljong og 3 dl vann per person.','Kok i 20 minutter og kjør suppen jevn om du vil.','Varm baguetten i ovnen og server suppen med en skje rømme.'],
+    tip:'Røde linser tykner suppen av seg selv. Blir den for tykk, spe med vann til den har riktig konsistens.'},
+  stris:{ing:{ris:80,egg:1.5,frys:150,hvitlok:1,soya:15}, side:'Soyasaus',
+    s:['Kok risen, gjerne dagen før.','Stek grønnsaker og hvitløk i varm panne.','Ha i risen og stek videre til den får litt farge.','Skyv risen til siden, stek eggene og bland alt. Smak til med soyasaus.'],
+    tip:'Bruk kald ris fra dagen før. Fersk ris blir klissete i pannen.'},
+  mos:{side:'Potetmos og gulrøtter', tip:'Rør en spiseskje mel inn i kjøttdeigen før buljongen går i. Da får du en saus som henger på mosen.'},
+  purre:{side:'Pasta og rømmesaus', tip:'Ta vare på en kopp pastavann. Blir rømmesausen for tykk, spe med litt vann til den blir blank og kremet.'},
+  wrap:{side:'Grønnsaker og rømme', tip:'Varm lefsene i tørr panne noen sekunder. Da sprekker de ikke når du ruller.'}
+};
+for(const [id,x] of Object.entries(COMPLETE)) Object.assign(RMAP[id], x);
+
+// Matillustrasjoner (tegnet i SVG)
+const BG = {bolo:'#fde3df',taco:'#ffefc9',curry:'#ffe8d1',laks:'#fde1da',carb:'#f6eedb',kpasta:'#fbefd3',omelett:'#fff4c7',linse:'#fde2d3',stris:'#e6f3e1',mos:'#f1e6da',purre:'#e8f4dd',wrap:'#efeadb'};
+const PLATE = '<ellipse cx="60" cy="66" rx="47" ry="43" fill="rgba(0,0,0,.07)"/><circle cx="60" cy="60" r="46" fill="#fff"/><circle cx="60" cy="60" r="37" fill="#f7f3ec"/>';
+const bowl = c => `<ellipse cx="60" cy="100" rx="32" ry="6" fill="rgba(0,0,0,.08)"/><path d="M12 50 Q14 98 60 98 Q106 98 108 50 Z" fill="#fff"/><path d="M20 66 Q30 92 60 93" stroke="#efe9df" stroke-width="3" fill="none"/><ellipse cx="60" cy="50" rx="48" ry="13" fill="#fff"/><ellipse cx="60" cy="50" rx="42" ry="9.5" fill="${c}"/>`;
+const dots = (pts,r,c) => pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`).join('');
+const waves = (y0,n,step,c,w) => Array.from({length:n},(_,i)=>`<path d="M32 ${y0+i*step} q7 -6 14 0 t14 0 t14 0 t12 0" stroke="${c}" stroke-width="${w}" fill="none" stroke-linecap="round"/>`).join('');
+const brok = (x,y) => `<rect x="${x-1.5}" y="${y}" width="3" height="7" rx="1.5" fill="#7fae5a"/>` + dots([[x-4,y],[x+4,y],[x,y-4],[x,y+1]],4,'#3f8d3f');
+const DISH = {
+  bolo: PLATE + waves(46,6,5,'#f2c94c',3) + '<path d="M44 47 q16 -11 32 0 q9 10 -4 18 q-14 8 -26 -2 q-8 -8 -2 -16z" fill="#c0392b"/>' + dots([[52,52],[62,49],[67,57],[56,60],[48,55]],2.6,'#7f2318') + '<ellipse cx="66" cy="44" rx="5" ry="2.6" fill="#4caf50" transform="rotate(-30 66 44)"/><ellipse cx="72" cy="47" rx="5" ry="2.6" fill="#388e3c" transform="rotate(25 72 47)"/>',
+  taco: PLATE + dots([[34,46],[44,42],[56,41],[68,42],[80,45],[88,49]],6.5,'#7cb342') + dots([[40,47],[60,45],[74,46]],4,'#8d5a3b') + '<rect x="48" y="40" width="6" height="6" fill="#e53935" rx="1"/><rect x="66" y="40" width="6" height="6" fill="#e53935" rx="1"/><rect x="82" y="44" width="5" height="5" fill="#e53935" rx="1"/><path d="M38 44 l8 -6 M58 42 l8 -5" stroke="#f9d648" stroke-width="2.5" stroke-linecap="round"/><path d="M24 50 A36 34 0 0 0 96 50 Z" fill="#f0c46c"/><path d="M30 55 A30 26 0 0 0 90 55" stroke="#e0a845" stroke-width="2" fill="none"/>',
+  curry: bowl('#e98a2c') + '<ellipse cx="44" cy="48" rx="16" ry="6" fill="#fffdf6"/>' + dots([[40,46],[46,48],[50,46],[38,49]],1.2,'#ece4d2') + dots([[66,50],[76,47],[72,54],[82,52]],4,'#f3d2a2') + dots([[62,46],[80,49],[70,51],[58,52]],1.4,'#2e7d32') + '<path d="M60 44 l3 -3" stroke="#c62828" stroke-width="2" stroke-linecap="round"/>',
+  laks: PLATE + '<rect x="30" y="38" width="36" height="22" rx="7" fill="#f28a6c"/><path d="M38 40 l-4 17 M46 39 l-4 19 M54 39 l-4 19 M62 40 l-3 16" stroke="#fde1d6" stroke-width="2"/><rect x="30" y="38" width="36" height="5" rx="2.5" fill="#d9654a"/>' + dots([[76,46],[82,60],[72,68]],8,'#f1d27a') + dots([[74,44],[80,58]],2,'#fff6d6') + brok(42,70) + brok(52,74) + '<path d="M70 40 h8" stroke="#fdd835" stroke-width="3" stroke-linecap="round"/>',
+  carb: PLATE + waves(44,7,5,'#f3e1ad',3.5) + Array.from({length:6},(_,i)=>`<rect x="${36+i*8}" y="${48+(i%3)*7}" width="6" height="4" rx="1" fill="#c75b4e"/>`).join('') + dots([[40,52],[58,48],[72,62],[50,66],[66,52]],1,'#333') + dots([[46,44],[70,56],[54,60]],1.6,'#43a047'),
+  kpasta: PLATE + '<ellipse cx="60" cy="58" rx="30" ry="24" fill="#f8ecd0"/>' + [[40,46,20],[54,44,-30],[68,48,40],[44,62,-20],[60,64,15],[74,60,-45],[50,54,60]].map(([x,y,a])=>`<rect x="${x}" y="${y}" width="12" height="5" rx="2" fill="#f2c94c" stroke="#d6a636" stroke-width="1" transform="rotate(${a} ${x+6} ${y+2})"/>`).join('') + dots([[62,54],[48,48],[70,68]],4,'#ecd2ad') + brok(78,48) + brok(40,68),
+  omelett: PLATE + '<path d="M28 62 A32 28 0 0 1 92 62 Z" fill="#f7d154"/><path d="M28 62 H92" stroke="#e6b82e" stroke-width="3" stroke-linecap="round"/>' + dots([[44,52],[62,46],[74,54]],2.5,'#e53935') + dots([[52,50],[68,52],[56,56]],2,'#43a047') + '<rect x="40" y="68" width="7" height="7" rx="2" fill="#e6b85c"/><rect x="50" y="71" width="7" height="7" rx="2" fill="#dba44a"/><rect x="60" y="68" width="7" height="7" rx="2" fill="#e6b85c"/><rect x="70" y="71" width="7" height="7" rx="2" fill="#dba44a"/>',
+  linse: bowl('#d9622b') + '<path d="M44 50 q8 -6 16 0 q8 6 16 0" stroke="#fff7ee" stroke-width="3" fill="none" stroke-linecap="round"/>' + dots([[52,46],[70,47],[64,53],[48,53],[78,51]],1.5,'#2e7d32') + dots([[40,48],[82,48],[58,49]],1.2,'#a94416'),
+  stris: bowl('#fbf5e6') + dots([[42,47],[56,52],[70,46],[80,51],[48,52],[64,49]],2.4,'#5aa83f') + '<rect x="50" y="45" width="4" height="4" fill="#ef8a2b"/><rect x="74" y="50" width="4" height="4" fill="#ef8a2b"/><rect x="40" y="50" width="4" height="4" fill="#ef8a2b"/>' + '<path d="M58 46 q4 -3 8 0 q-2 4 -8 0z M76 46 q4 -3 7 1 q-3 3 -7 -1z" fill="#f7d154"/>',
+  mos: PLATE + '<ellipse cx="54" cy="58" rx="24" ry="18" fill="#fffaf0"/><ellipse cx="50" cy="52" rx="12" ry="6" fill="#fff"/><path d="M48 54 q14 -8 30 2 q8 10 -4 16 q-14 6 -26 -4 q-6 -6 0 -14z" fill="#8d5a3b"/>' + dots([[58,58],[66,62],[54,64]],2.4,'#5d3a24') + '<rect x="76" y="44" width="10" height="5" rx="2.5" fill="#ef8a2b" transform="rotate(30 81 46)"/><rect x="78" y="56" width="10" height="5" rx="2.5" fill="#ef8a2b" transform="rotate(-10 83 58)"/>',
+  purre: PLATE + waves(44,7,5,'#f3e1ad',3.5) + [[42,48],[58,46],[72,54],[48,64],[64,64],[78,44]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="none" stroke="#e9d39a" stroke-width="2.5"/>`).join('') + Array.from({length:4},(_,i)=>`<rect x="${40+i*10}" y="${56-(i%2)*5}" width="6" height="4" rx="1" fill="#c75b4e"/>`).join(''),
+  wrap: PLATE + [[30,40,-12],[34,58,-12]].map(([x,y,a])=>`<g transform="rotate(${a} ${x+26} ${y+8})"><rect x="${x}" y="${y}" width="52" height="16" rx="8" fill="#efd7a0"/><path d="M${x+12} ${y+2} v12 M${x+26} ${y+2} v12" stroke="#e2c27f" stroke-width="1.5"/><circle cx="${x+50}" cy="${y+8}" r="8" fill="#f5e4bb"/><circle cx="${x+50}" cy="${y+8}" r="6" fill="#7cb342"/><circle cx="${x+48}" cy="${y+6}" r="2" fill="#e53935"/><circle cx="${x+52}" cy="${y+10}" r="2.2" fill="#f1e2c6"/></g>`).join('')
+};
+function dishSvg(id, cls){ return `<svg class="${cls||''}" viewBox="0 0 120 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${DISH[id]||PLATE}</svg>`; }
+
+// ===== Flere retter (skrevet med egne ord, inspirert av norske hverdagsklassikere) =====
+Object.assign(ING, {
+  makaroni:{n:'Makaroni',u:'g',pack:500,p:15,l:'500 g'},
+  skinke:{n:'Kokt skinke',u:'g',pack:150,p:32,l:'150 g'},
+  lasagne:{n:'Lasagneplater',u:'g',pack:500,p:25,l:'500 g'},
+  mel:{n:'Hvetemel',u:'g',pack:1000,p:20,l:'1 kg'},
+  gjaer:{n:'Tørrgjær',u:'pose',pack:3,p:15,l:'3 poser'},
+  pepperoni:{n:'Pepperoni',u:'g',pack:80,p:25,l:'80 g'},
+  pinsa:{n:'Pinsabunn',u:'stk',pack:2,p:49,l:'2 stk'},
+  ruccola:{n:'Ruccola',u:'pose',pack:1,p:25,l:'65 g'},
+  burgerbrod:{n:'Hamburgerbrød',u:'stk',pack:4,p:25,l:'4 stk'},
+  tomat:{n:'Tomat',u:'stk',pack:1,p:7,l:'1 stk'},
+  dressing:{n:'Burgerdressing',u:'ml',pack:250,p:30,l:'250 ml'},
+  fisk:{n:'Seifilet, fryst',u:'g',pack:400,p:55,l:'400 g'},
+  fiskekaker:{n:'Fiskekaker',u:'g',pack:600,p:55,l:'600 g'},
+  tyttebaer:{n:'Tyttebærsyltetøy',u:'g',pack:400,p:35,l:'400 g'},
+  svin:{n:'Svinegrytekjøtt',u:'g',pack:500,p:69,l:'500 g'},
+  kalrot:{n:'Kålrot',u:'stk',pack:1,p:20,l:'1 stk'},
+  flatbrod:{n:'Flatbrød',u:'pakke',pack:1,p:28,l:'1 pakke'},
+  polser:{n:'Grillpølser',u:'g',pack:600,p:45,l:'600 g'},
+  mais:{n:'Mais',u:'g',pack:340,p:15,l:'340 g'},
+  nachos:{n:'Nachochips',u:'g',pack:185,p:25,l:'185 g'},
+  kyllinglar:{n:'Kyllinglår',u:'g',pack:1000,p:79,l:'1 kg'}
+});
+const MORE = [
+  {id:'makgrat',n:'Makaronigrateng med skinke',t:45,img:'grateng',ing:{makaroni:90,skinke:60,melk:150,ost:40,egg:1,smor:10,gulrot:75},side:'Gulrotråkost',
+   s:['Kok makaronien et par minutter kortere enn det står på pakken.','Skjær skinken i terninger og bland med makaronien i en smurt form.','Visp egg og melk, smak til med salt og pepper, og hell over.','Strø over ost og stek på 200 grader i 25 minutter til toppen er gyllen.','Riv gulrøttene og server som råkost ved siden av.'],
+   tip:'Kok makaronien litt for kort tid. Den suger opp eggemelken i ovnen og blir ellers grøtete.'},
+  {id:'lasagne',n:'Lasagne',t:60,img:'lasagne',ing:{kjottdeig:125,lasagne:75,tomater:200,tomatpure:15,lok:50,gulrot:50,melk:150,ost:40,smor:15,salat:0.25},side:'Grønn salat',
+   s:['Lag kjøttsaus: brun kjøttdeig med hakket løk og revet gulrot, fres inn tomatpuré og ha i tomatene. La det småkoke i 15 minutter.','Lag hvit saus: smelt smøret, rør inn 1 ss mel per person og spe med melk under omrøring til sausen tykner.','Legg lag med kjøttsaus, plater og hvit saus i en form. Avslutt med hvit saus og ost.','Stek på 200 grader i 30 til 35 minutter. La den hvile 10 minutter før du skjærer.','Server med grønn salat.'],
+   tip:'La lasagnen hvile 10 minutter etter ovnen. Da holder lagene seg og den blir ikke rennende på tallerkenen.'},
+  {id:'pizza',n:'Hjemmelaget pizza',t:60,img:'pizza',ing:{mel:125,gjaer:0.33,tomater:100,tomatpure:10,ost:75,pepperoni:35,paprika:0.25},side:'Hjemmelaget bunn',
+   s:['Bland mel, gjær, en klype salt, en skvett olje og ca 0,8 dl lunkent vann per person. Elt til en smidig deig og la den heve i 30 minutter.','Kok tomater og tomatpuré inn til en tykk saus i 10 minutter. Smak til med salt, pepper og oregano.','Kjevle ut deigen tynt på et stekebrett med bakepapir.','Fordel saus, ost, pepperoni og paprika.','Stek nederst i ovnen på 250 grader i 10 til 12 minutter.'],
+   tip:'Kok pizzasausen tykk. Rennende saus gjør bunnen bløt i midten.'},
+  {id:'pinsa',n:'Pinsa med skinke og ruccola',t:15,img:'pinsa',ing:{pinsa:1,tomater:80,ost:60,skinke:50,ruccola:0.25},side:'Ruccola',
+   s:['Forvarm ovnen til 250 grader.','Smør tomatene tynt utover bunnen og strø over ost.','Stek i 6 til 8 minutter til osten bobler.','Legg på skinke og ruccola rett før servering.'],
+   tip:'Legg skinke og ruccola på etter steking. Da blir ruccolaen frisk og skinken saftig.'},
+  {id:'burger',n:'Hjemmelaget burger med potetbåter',t:40,img:'burger',ing:{kjottdeig:150,burgerbrod:1,ost:30,salat:0.15,tomat:0.5,lok:25,dressing:30,poteter:250},side:'Ovnsbakte potetbåter',
+   s:['Del potetene i båter, vend dem i olje og salt, og stek på 220 grader i 30 minutter.','Form kjøttdeigen til burgere som er litt bredere enn brødet, og trykk en grop i midten.','Stek burgerne på høy varme i 3 til 4 minutter per side, og legg på ost det siste minuttet.','Varm brødene og bygg burgeren med dressing, salat, tomat og løk.'],
+   tip:'Trykk en liten grop midt i burgeren før steking. Da blir den flat og jevn i stedet for å bli en ball.'},
+  {id:'terilaks',n:'Teriyakilaks med ris og brokkoli',t:25,img:'laks',ing:{laks:125,ris:80,soya:15,brokkoli:0.25,hvitlok:1},side:'Ris og brokkoli',
+   s:['Kok risen.','Rør sammen soyasaus, hvitløk og 1 ts sukker per person.','Stek laksen i panne 3 minutter på hver side, og hell sausen over det siste minuttet så den blir blank.','Kok brokkolien i 3 minutter og server.'],
+   tip:'Ha sausen i helt til slutt. Sukkeret brenner seg fort hvis det står lenge i pannen.'},
+  {id:'fiskgrat',n:'Fiskegrateng',t:50,img:'grateng',ing:{fisk:125,makaroni:60,melk:150,ost:40,smor:15,egg:1,gulrot:75},side:'Gulrotråkost',
+   s:['Kok makaronien. La fisken tine og skjær den i biter.','Lag hvit saus av smør, 1 ss mel per person og melk. Ta kjelen av varmen og rør inn eggene.','Bland fisk, makaroni og saus i en smurt form, og strø over ost.','Stek på 200 grader i 30 minutter.','Server med revet gulrot.'],
+   tip:'Tørk fisken godt etter tining. Ellers blir grateng vannete i bunnen.'},
+  {id:'fiskekaker',n:'Fiskekaker med poteter og gulrøtter',t:30,img:'kaker',ing:{fiskekaker:150,poteter:250,gulrot:100,lok:50,smor:10},side:'Poteter, gulrøtter og stekt løk',
+   s:['Kok potetene og gulrøttene.','Stek fiskekakene gyllne i smør på middels varme.','Stek løken myk og gyllen i samme panne.','Server alt sammen med smeltet smør.'],
+   tip:'Stek fiskekakene på middels varme. På høy varme blir de brent utenpå før de er varme inni.'},
+  {id:'kjottkaker',n:'Kjøttkaker i brun saus',t:50,img:'kaker2',ing:{kjottdeig:125,egg:0.5,melk:30,poteter:250,gulrot:75,buljong:0.5,smor:10,tyttebaer:30},side:'Poteter, gulrøtter og tyttebær',
+   s:['Bland kjøttdeig, egg, melk, salt og pepper til en fast farse, og form kaker.','Brun kjøttkakene i smør og ta dem ut av pannen.','Lag brun saus: brun 1 ss mel per person i smøret, spe med buljong og vann til den tykner.','Legg kjøttkakene i sausen og la dem småkoke i 15 minutter.','Kok poteter og gulrøtter, og server med tyttebær.'],
+   tip:'Brun melet til det er nøttebrunt før du sper. Det er det som gir den ekte brune sausen.'},
+  {id:'lapskaus',n:'Brun lapskaus',t:75,img:'gryte_brun',ing:{svin:125,poteter:200,gulrot:75,kalrot:0.15,lok:50,buljong:0.5,flatbrod:0.15},side:'Flatbrød',
+   s:['Brun kjøttet i en gryte og ha i hakket løk.','Ha i buljong og vann så det dekker, og la det småkoke i 30 minutter.','Ha i poteter, gulrot og kålrot i terninger og kok videre i 30 minutter.','Rør godt så noe av poteten koker ut og tykner lapskausen. Server med flatbrød.'],
+   tip:'Rør hardt de siste minuttene. Potetene som koker i stykker er det som gjør lapskausen tykk.'},
+  {id:'polsegryte',n:'Pølsegryte med ris',t:30,img:'gryte_rod',ing:{polser:125,tomater:200,lok:50,paprika:0.5,flote:40,ris:75},side:'Ris',
+   s:['Kok risen.','Skjær pølsene i skiver og stek dem med løk og paprika.','Ha i tomatene og la det småkoke i 10 minutter.','Rør inn fløten, smak til med paprikakrydder, salt og pepper.'],
+   tip:'Stek pølsene til de får farge før tomatene går i. Det gir mye mer smak i gryten.'},
+  {id:'kyllinggryte',n:'Kremet kyllinggryte med ris',t:35,img:'gryte_krem',ing:{kylling:140,flote:75,paprika:0.5,lok:50,buljong:0.25,gulrot:50,ris:75},side:'Ris',
+   s:['Kok risen.','Stek kyllingbiter, løk, paprika og gulrot.','Ha i fløte, buljong og litt vann, og la det småkoke uten lokk i 10 minutter.','Smak til med salt, pepper og gjerne litt paprikakrydder.'],
+   tip:'Kok uten lokk så fløten tykner. Med lokk blir gryten tynn.'},
+  {id:'tacosuppe',n:'Tacosuppe',t:30,img:'gryte_taco',ing:{kjottdeig:100,tomater:200,taco:0.25,mais:70,lok:40,buljong:0.25,romme:40,nachos:30,ost:20},side:'Rømme, ost og nachochips',
+   s:['Brun kjøttdeig og løk, og rør inn tacokrydderet.','Ha i tomater, buljong og 2 dl vann per person.','Ha i maisen og la suppen småkoke i 10 minutter.','Server med rømme, revet ost og nachochips.'],
+   tip:'Knus noen nachochips rett i suppen. Det gir mer fylde og en god crunch.'},
+  {id:'kyllinglar',n:'Ovnsbakte kyllinglår med rotgrønnsaker',t:50,img:'kyllinglar',ing:{kyllinglar:300,poteter:200,gulrot:100,lok:50},side:'Rotgrønnsaker i samme form',
+   s:['Skjær poteter, gulrot og løk i biter og legg dem i en ildfast form med olje og salt.','Krydre kyllinglårene og legg dem oppå grønnsakene.','Stek på 200 grader i 40 til 45 minutter til skinnet er sprøtt.'],
+   tip:'Legg kyllingen oppå grønnsakene. Da renner fettet ned og gir grønnsakene smak, og skinnet blir sprøtt.'},
+  {id:'pannekaker',n:'Pannekaker med bacon og tyttebær',t:35,img:'pannekaker',ing:{mel:70,egg:1,melk:200,bacon:70,tyttebaer:40,smor:10},side:'Bacon og tyttebær',
+   s:['Visp mel og halvparten av melken klumpfritt, og rør inn resten av melken, egg og en klype salt.','La røren svelle i 15 minutter.','Stek baconet sprøtt.','Stek tynne pannekaker i smør og server med bacon og tyttebær.'],
+   tip:'La røren svelle før steking. Da blir pannekakene tynnere og sprekker ikke.'}
+];
+MORE.forEach(r=>{ RECIPES.push(r); RMAP[r.id]=r; });
+Object.assign(BG,{makgrat:'#fdf0d2',lasagne:'#fde3d6',pizza:'#fde6d8',pinsa:'#eaf3df',burger:'#fbecd6',terilaks:'#fde1da',fiskgrat:'#fdf3dc',fiskekaker:'#f3efe4',kjottkaker:'#f1e6da',lapskaus:'#efe4d6',polsegryte:'#fde2d6',kyllinggryte:'#fdf0dc',tacosuppe:'#fde4d3',kyllinglar:'#fbeacc',pannekaker:'#fff2d4'});
+const IMG = {
+  grateng: '<ellipse cx="60" cy="88" rx="44" ry="7" fill="rgba(0,0,0,.08)"/><rect x="16" y="30" width="88" height="56" rx="14" fill="#fff"/><rect x="22" y="36" width="76" height="44" rx="10" fill="#f2c46a"/>' + dots([[34,46],[52,52],[70,44],[84,56],[44,66],[64,68],[88,70],[30,62]],4,'#d9932f') + dots([[40,56],[78,62],[58,42]],2.5,'#b8741e'),
+  lasagne: '<ellipse cx="60" cy="88" rx="44" ry="7" fill="rgba(0,0,0,.08)"/><rect x="16" y="30" width="88" height="56" rx="14" fill="#fff"/><rect x="22" y="36" width="76" height="44" rx="10" fill="#e9a54f"/><path d="M22 70 h76 M22 60 h76" stroke="#c6452e" stroke-width="4"/><path d="M22 65 h76" stroke="#fbe7c4" stroke-width="3"/>' + dots([[36,46],[56,44],[78,48],[46,52],[68,52],[88,44]],3.5,'#c97a2a'),
+  pizza: '<circle cx="60" cy="58" r="44" fill="#e3a95c"/><circle cx="60" cy="58" r="37" fill="#d9432c"/>' + dots([[46,44],[70,42],[60,58],[42,66],[78,64],[56,76],[80,52]],7,'#f8e1a0') + dots([[52,50],[74,54],[48,72],[66,70],[62,40]],5,'#a5301f') + dots([[40,54],[70,78],[84,62]],2.5,'#3f8d3f'),
+  pinsa: '<ellipse cx="60" cy="60" rx="50" ry="34" fill="#e9b872"/><ellipse cx="60" cy="60" rx="43" ry="27" fill="#d9532f"/>' + dots([[44,56],[62,50],[78,60],[54,68],[70,70]],6,'#f8e4ad') + '<path d="M40 52 q10 -8 20 0 M62 64 q10 -8 20 0 M48 70 q8 -6 16 0" stroke="#6aa84f" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M58 58 h14" stroke="#e8a3a0" stroke-width="5" stroke-linecap="round"/>',
+  burger: '<ellipse cx="60" cy="96" rx="36" ry="5" fill="rgba(0,0,0,.08)"/><path d="M26 52 Q26 22 60 22 Q94 22 94 52 Z" fill="#e2a24f"/>' + dots([[48,34],[60,30],[72,35],[54,42],[68,44]],1.6,'#fff3d6') + '<path d="M22 56 q8 -6 16 0 t16 0 t16 0 t16 0 t12 0 v4 H22z" fill="#6aa84f"/><rect x="24" y="58" width="72" height="6" rx="3" fill="#e53935"/><path d="M24 66 h72 l-6 6 h-60z" fill="#f6c453"/><rect x="24" y="70" width="72" height="11" rx="5" fill="#6d3d22"/><path d="M26 84 h68 q0 10 -10 10 h-48 q-10 0 -10 -10z" fill="#e2a24f"/>',
+  kaker: PLATE + dots([[48,46],[64,44],[56,58],[42,60]],8,'#e7cfa3') + dots([[48,46],[64,44]],3,'#d9b77d') + dots([[76,56],[72,70],[84,66]],7,'#f1d27a') + '<rect x="40" y="70" width="16" height="5" rx="2.5" fill="#ef8a2b"/><rect x="44" y="77" width="16" height="5" rx="2.5" fill="#ef8a2b"/>',
+  kaker2: PLATE + '<ellipse cx="54" cy="56" rx="26" ry="18" fill="#7a4a2c"/>' + dots([[46,52],[60,50],[54,62],[66,60],[42,62]],7,'#5c3520') + dots([[80,46],[84,60]],7,'#f1d27a') + dots([[74,72],[80,74],[77,68]],3.5,'#c62f3a') + '<rect x="30" y="74" width="16" height="5" rx="2.5" fill="#ef8a2b"/>',
+  gryte_brun: bowl('#8a5a34') + dots([[44,48],[58,52],[72,47],[80,51],[50,52]],4,'#e9c88e') + dots([[64,48],[40,51]],3.5,'#ef8a2b') + dots([[54,46],[76,53]],3.5,'#6a3e22'),
+  gryte_rod: bowl('#c9472c') + [[42,48],[58,52],[72,46],[80,51]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="5" ry="3.2" fill="#e8956f" stroke="#a24a2c" stroke-width="1"/>`).join('') + dots([[52,46],[66,51]],2.4,'#f6c453'),
+  gryte_krem: bowl('#f1c27d') + dots([[44,48],[60,52],[74,47],[52,52]],4.5,'#fbe8c8') + dots([[66,48],[82,51],[40,51]],3,'#e53935') + dots([[56,46],[70,53]],3,'#ef8a2b'),
+  gryte_taco: bowl('#c8432b') + dots([[48,48],[64,51],[78,47]],3,'#f6d34a') + '<path d="M40 44 l8 -6 l3 8z M70 42 l9 -4 l0 8z" fill="#f2c46a"/><ellipse cx="58" cy="49" rx="7" ry="3.5" fill="#fff7ee"/>' + dots([[50,53],[72,53]],2.5,'#7f3a1f'),
+  kyllinglar: PLATE + [[46,48,-30],[68,46,25]].map(([x,y,a])=>`<g transform="rotate(${a} ${x} ${y})"><ellipse cx="${x}" cy="${y}" rx="13" ry="10" fill="#c97b34"/><ellipse cx="${x-3}" cy="${y-3}" rx="6" ry="3.5" fill="#e3a55c"/><rect x="${x+10}" y="${y-2.5}" width="10" height="5" rx="2.5" fill="#f5ead6"/></g>`).join('') + dots([[44,70],[62,72],[78,66]],6,'#f1d27a') + '<rect x="50" y="62" width="14" height="5" rx="2.5" fill="#ef8a2b" transform="rotate(20 57 64)"/>',
+  pannekaker: PLATE + [[36,44],[34,56],[38,68]].map(([x,y])=>`<rect x="${x}" y="${y}" width="44" height="10" rx="5" fill="#f3cf7a" stroke="#e0b25a" stroke-width="1.2"/>`).join('') + '<rect x="78" y="44" width="10" height="5" rx="1.5" fill="#c75b4e" transform="rotate(-15 83 46)"/><rect x="80" y="56" width="10" height="5" rx="1.5" fill="#c75b4e" transform="rotate(10 85 58)"/>' + dots([[84,70],[88,74],[80,74]],3.2,'#c62f3a')
+};
+MORE.forEach(r=>{ DISH[r.id] = IMG[r.img] || DISH[r.img] || PLATE; });
+
+function confetti(seed){
+  let h=''; let s=seed;
+  const rnd=()=>{ s=(s*9301+49297)%233280; return s/233280; };
+  for(let i=0;i<14;i++){ const x=rnd()*100, y=rnd()*100, r=2+rnd()*4; h+=`<circle cx="${x}%" cy="${y}%" r="${r}" fill="rgba(255,255,255,.7)"/>`; }
+  return `<svg class="dots" width="100%" height="100%">${h}</svg>`;
+}
+const WEEKDAYS = ['Mandag','Tirsdag','Onsdag','Torsdag','Fredag','Lørdag','Søndag'];
+
+let S = {settings:null, plan:[], notes:{}, photos:{}, myPrices:{}, checked:{}, receipts:[], swapIdx:{}, open:{}};
+function load(){ try{ const d = JSON.parse(localStorage.getItem('kassepris_v1')||'null'); if(d) S = Object.assign(S,d); }catch(e){} }
+function save(){ try{ localStorage.setItem('kassepris_v1', JSON.stringify(S)); }catch(e){} }
+
+const kr = v => Math.round(v).toLocaleString('nb-NO') + ' kr';
+const $ = id => document.getElementById(id);
+
+function evaluate(list, P, f){
+  const inv = {}, buy = {}, days = [];
+  let prop = 0;
+  for(const id of list){
+    const r = RMAP[id]; const used = []; let dayCost = 0;
+    for(const [k,a] of Object.entries(r.ing)){
+      const g = ING[k], need = a*P, have = inv[k]||0;
+      prop += need/g.pack*g.p*f;
+      if(have > 1e-9) used.push(g.n);
+      if(have >= need - 1e-9){ inv[k] = have - need; }
+      else{
+        const packs = Math.ceil((need-have)/g.pack - 1e-9);
+        buy[k] = (buy[k]||0) + packs;
+        dayCost += packs*g.p*f;
+        inv[k] = have + packs*g.pack - need;
+      }
+    }
+    days.push({id, used, dayCost});
+  }
+  let cost = 0; for(const k in buy) cost += buy[k]*ING[k].p*f;
+  return {cost, prop, buy, inv, days};
+}
+
+const TAGS = {
+  gluten:['pasta','makaroni','lasagne','mel','tortilla','burgerbrod','pinsa','fiskekaker','polser'],
+  melk:['flote','melk','romme','ost','smor'],
+  egg:['egg','dressing','fiskekaker'],
+  fisk:['laks','fisk','fiskekaker'],
+  svin:['bacon','skinke','svin','polser','pepperoni'],
+  kjott:['kjottdeig','kylling','kyllinglar','bacon','skinke','svin','polser','pepperoni','laks','fisk','fiskekaker']
+};
+const CATS = {
+  pasta:['bolo','carb','kpasta','purre','lasagne','makgrat'],
+  kylling:['curry','kpasta','wrap','kyllinggryte','kyllinglar'],
+  fisk:['laks','terilaks','fiskgrat','fiskekaker'],
+  kjottdeig:['bolo','taco','mos','lasagne','burger','kjottkaker','tacosuppe'],
+  texmex:['taco','wrap','tacosuppe'],
+  husmann:['mos','kjottkaker','lapskaus','fiskekaker','pannekaker','polsegryte','fiskgrat','makgrat'],
+  gryte:['curry','linse','kyllinggryte','polsegryte','lapskaus','tacosuppe'],
+  fredag:['pizza','pinsa','burger','taco'],
+  asia:['curry','stris','terilaks']
+};
+function likedSet(){ return new Set(((S.settings&&S.settings.likes)||[]).flatMap(c=>CATS[c]||[])); }
+function allowedRecipes(){
+  const ex = (S.settings && S.settings.excl) || [], mt = (S.settings && S.settings.maxTime) || 999;
+  const bad = new Set(ex.flatMap(e=>TAGS[e]||[]));
+  return RECIPES.filter(r=> r.t<=mt && !Object.keys(r.ing).some(k=>bad.has(k)));
+}
+function makePlan(B, P, N, f, avoid){
+  const AV = new Set(avoid||[]);
+  const POOL = allowedRecipes(); N = Math.min(N, POOL.length); const LIKE = likedSet();
+  const plans = [];
+  for(let a=0; a<400; a++){
+    const list = [];
+    for(let d=0; d<N; d++){
+      const base = evaluate(list,P,f).cost;
+      let best=null, bs=Infinity;
+      for(const r of POOL){
+        if(list.includes(r.id)) continue;
+        const s = evaluate([...list,r.id],P,f).cost - base + Math.random()*110*P/2 - (LIKE.has(r.id)?70*P/2:0) + (AV.has(r.id)?90*P/2:0);
+        if(s<bs){bs=s;best=r.id;}
+      }
+      list.push(best);
+    }
+    plans.push({list, cost:evaluate(list,P,f).cost});
+  }
+  const ok = plans.filter(p=>p.cost<=B);
+  if(ok.length){
+    const score = p=>p.list.filter(id=>LIKE.has(id)).length*2 - p.list.filter(id=>AV.has(id)).length*3;
+    const top = Math.max(...ok.map(score));
+    const best = ok.filter(p=>score(p)===top);
+    return best[Math.floor(Math.random()*best.length)].list;
+  }
+  plans.sort((x,y)=>x.cost-y.cost);
+  return plans[0].list;
+}
+
+function fmtQty(x,u){
+  if(u==='g'){ if(x>=1000) return (Math.round(x/100)/10).toLocaleString('nb-NO')+' kg'; return Math.round(x/5)*5+' g'; }
+  if(u==='ml'){ if(x>=1000) return (Math.round(x/100)/10).toLocaleString('nb-NO')+' l'; return (Math.round(x/10)/10).toLocaleString('nb-NO')+' dl'; }
+  const q = Math.round(x*4)/4, whole = Math.floor(q), fr = q-whole;
+  const fs = fr===0.25?'¼':fr===0.5?'½':fr===0.75?'¾':'';
+  return ((whole?whole:'') + fs || '0') + ' ' + u;
+}
+
+function render(){
+  if(!S.settings || !S.plan.length){ $('result').classList.add('hidden'); return; }
+  const {B,P,f} = S.settings;
+  const ev = evaluate(S.plan,P,f);
+  $('result').classList.remove('hidden');
+  $('kasse').textContent = kr(ev.cost);
+  
+  
+  $('budgetLabel').textContent = 'Budsjett ' + kr(B);
+  const EXN={gluten:'gluten',melk:'melk',egg:'egg',fisk:'fisk',svin:'svinekjøtt',kjott:'kjøtt og fisk'};
+  const st=(S.settings.mode==='many'&&S.settings.stores.length>1)?S.settings.stores.map(storeName).join(' + '):storeName(S.settings.code)+(S.settings.stores.length>1?' (billigst av '+S.settings.stores.length+')':''), ex=(S.settings.excl||[]).map(e=>EXN[e]);
+  $('setupSummary').textContent = `${P} ${P>1?'personer':'person'} · ${S.plan.length} middager · ${st}` + (ex.length?` · Uten ${ex.join(', ')}`:'') + (S.settings.maxTime&&S.settings.maxTime<999?` · Maks ${S.settings.maxTime} min`:'');
+  if(S.plan.length < S.settings.N) $('setupSummary').textContent += ` · Bare ${S.plan.length} retter passer innstillingene dine foreløpig.`;
+  if((S.settings.excl||[]).includes('gluten')) $('setupSummary').textContent += ' Velg glutenfri buljong, soyasaus og brød der det står i handlelisten.';
+  const pct = Math.min(100, ev.cost/B*100);
+  $('barFill').style.width = pct + '%';
+  $('bar').classList.toggle('over', ev.cost > B);
+  $('restLabel').textContent = ev.cost<=B ? kr(B-ev.cost)+' igjen av budsjettet' : kr(ev.cost-B)+' over budsjettet. Prøv en ny plan eller færre middager.';
+  
+
+  // Ukeplan
+  let h = '';
+  ev.days.forEach((d,i)=>{
+    const r = RMAP[d.id], open = S.open[i];
+    const ph = S.photos && S.photos[r.id];
+    h += ph ? `<div class="day"><div class="dish-img photo" style="background-image:url(${ph})"><span class="time">${r.t} min</span></div>` : `<div class="day"><div class="dish-img" style="background:radial-gradient(circle at 50% 60%, #ffffff 0%, ${BG[r.id]||'#eee'} 70%)">${confetti(i*37+r.id.length*11)}<span class="time">${r.t} min</span>${dishSvg(r.id,'food')}</div>`;
+    h += `<div class="day-top"><div><div class="dname">${WEEKDAYS[i]}</div><div class="rname">${r.n}</div><div class="meta">${d.dayCost>0?'Handler inn for '+kr(d.dayCost):'Ingenting nytt å kjøpe, bare rester'}</div></div></div>`;
+    if(r.side) h += `<span class="chip">Med ${r.side.toLowerCase()}</span> `;
+    if(d.used.length) h += `<span class="badge">Bruker rester: ${d.used.join(', ').toLowerCase()}</span>`;
+    h += `<div class="actions"><button class="btn-ghost" data-open="${i}">${open?'Skjul oppskrift':'Vis oppskrift'}</button><button class="btn-plain" data-swap="${i}">Bytt rett</button></div>`;
+    if(open){
+      h += `<div class="detail"><b>Ingredienser for ${P} ${P>1?'personer':'person'}</b><ul>`;
+      for(const [k,a] of Object.entries(r.ing)) h += `<li>${fmtQty(a*P,ING[k].u)} ${ING[k].n.toLowerCase()}</li>`;
+      h += `</ul><b>Slik gjør du</b><ol>${r.s.map(x=>`<li>${x}</li>`).join('')}</ol>`;
+      if(r.tip) h += `<div class="tip"><b>Kokketips</b><br>${r.tip}</div>`;
+      h += `<label>Ditt eget bilde av retten</label><input type="file" accept="image/*" data-photo="${r.id}"><p class="note" style="margin:4px 0 12px">Ta et bilde når du har laget retten. Da ser ukeplanen din ut som din egen mat.</p>`;
+      h += `<label for="note-${r.id}">Dine notater og endringer</label><textarea id="note-${r.id}" data-note="${r.id}" placeholder="For eksempel: mer hvitløk, bruker kremost i stedet for fløte">${S.notes[r.id]||''}</textarea><div class="saved" id="saved-${r.id}"></div></div>`;
+    }
+    h += `</div>`;
+  });
+  $('tab-plan').innerHTML = h;
+
+  // Handleliste
+  const items = Object.entries(ev.buy).sort((a,b)=>ING[a[0]].n.localeCompare(ING[b[0]].n,'nb'));
+  let l = '<h2>Handleliste</h2>';
+  const itemHtml = ([k,n])=>{ const g = ING[k], done = S.checked[k];
+    return `<label class="item ${done?'done':''}" style="margin:0;color:inherit;font-weight:400"><input type="checkbox" data-check="${k}" ${done?'checked':''}><span class="nm">${n>1?n+' x ':''}${g.n}<small>${g.l} · ${g.src||'anslag'}</small></span><span class="price">${kr(n*g.p*f)}</span></label>`; };
+  const many = S.settings.mode==='many' && S.settings.stores.length>1;
+  if(many){
+    const groups = {};
+    items.forEach(it=>{ const a = ING[it[0]].at || 'any'; (groups[a]=groups[a]||[]).push(it); });
+    const order = [...S.settings.stores.filter(c=>groups[c]), ...(groups.any?['any']:[])];
+    order.forEach(c=>{
+      const sub = groups[c].reduce((t,[k,n])=>t+n*ING[k].p*f,0);
+      l += `<div class="storehead"><span>${c==='any'?'Hvilken som helst av butikkene':storeName(c)}</span><span>${kr(sub)}</span></div>`;
+      groups[c].forEach(it=>{ l += itemHtml(it); });
+    });
+    if(groups.any) l += '<p class="note">Varene under «Hvilken som helst» mangler ekte pris i butikkene dine. Prisen er et anslag.</p>';
+  } else items.forEach(it=>{ l += itemHtml(it); });
+  l += `<div class="total"><span>Totalt i kassen</span><span>${kr(ev.cost)}</span></div>`;
+  if(S.settings.stores.length>1){
+    const cmp = compareStores(S.plan).sort((a,b)=>a.cost-b.cost);
+    l += `<h2 style="margin-top:22px">Samme handleliste i hver butikk</h2>`;
+    cmp.forEach(x=>{ const best = !many && x.code===S.settings.code;
+      l += `<div class="cmp ${best?'best':''}"><span>${storeName(x.code)}${best?' · du handler her':''}<small style="display:block;font-weight:400;color:var(--muted)">${x.real} av ${x.n} priser er ekte</small></span><span>${kr(x.cost)}</span></div>`; });
+    if(many) l += `<div class="cmp best"><span>Flere butikker, billigst per vare</span><span>${kr(ev.cost)}</span></div>`;
+    l += '<p class="note">Butikker med få ekte priser blir mer presise når du legger inn priser fra kvitteringene dine.</p>';
+  }
+  $('tab-list').innerHTML = l;
+
+  // Rester
+  const left = Object.entries(ev.inv).filter(([k,v])=>v > ING[k].pack*0.08);
+  let r = '<h2>Dette har du igjen etter uka</h2>';
+  if(!left.length) r += '<div class="empty">Nesten ingenting går til spille denne uka.</div>';
+  else{
+    let val = 0;
+    left.sort((a,b)=>b[1]/ING[b[0]].pack*ING[b[0]].p - a[1]/ING[a[0]].pack*ING[a[0]].p).forEach(([k,v])=>{
+      const g = ING[k], w = v/g.pack*g.p*f; val += w;
+      r += `<div class="item"><span class="nm">${g.n}<small>${fmtQty(v,g.u)} igjen</small></span><span class="price">${kr(w)}</span></div>`;
+    });
+    r += `<div class="total"><span>Verdi av rester</span><span>${kr(val)}</span></div><p class="note">Ting som ris, pasta og smør holder seg lenge og blir med til neste uke. Ferske varer bør brukes opp.</p>`;
+  }
+  $('tab-left').innerHTML = r;
+
+  renderMyPrices(ev);
+  renderReceipts(ev.cost);
+}
+
+function renderMyPrices(ev){
+  if(!S.settings.stores.includes(S.priceStore)) S.priceStore = S.settings.code || S.settings.stores[0];
+  const code = S.priceStore, name = storeName(code);
+  const items = Object.entries(ev.buy).sort((a,b)=>ING[a[0]].n.localeCompare(ING[b[0]].n,'nb'));
+  const mineCount = Object.keys((S.myPrices||{})[code]||{}).length;
+  let h = (S.settings.stores.length>1?`<label for="priceStore">Butikk på kvitteringen</label><select id="priceStore">${S.settings.stores.map(c=>`<option value="${c}" ${c===code?'selected':''}>${storeName(c)}</option>`).join('')}</select>`:'') + `<h2>Hva betalte du på ${name}?</h2><p class="note" style="margin-top:-6px">Skriv inn prisen per pakke fra kvitteringen. Appen husker den, og neste ukeplan bruker det du faktisk betalte. Du har ${mineCount} egne priser på ${name}.</p>`;
+  items.forEach(([k,n])=>{
+    const g = ING[k];
+    h += `<div class="item"><span class="nm">${g.n}<small>${g.l}${n>1?' · '+n+' stk kjøpt':''}</small></span><input class="pin" type="text" inputmode="decimal" data-myprice="${k}" placeholder="${(Math.round(g.p*10)/10).toString().replace('.',',')}" style="width:96px;text-align:right"></div>`;
+  });
+  h += `<button class="btn" id="saveMine">Lagre prisene mine</button><div id="mineStatus"></div>`;
+  $('myprices').innerHTML = h;
+  if($('priceStore')) $('priceStore').onchange = e=>{ S.priceStore = e.target.value; save(); renderMyPrices(ev); };
+  $('saveMine').onclick = ()=>{
+    const d = new Date().toLocaleDateString('nb-NO',{day:'numeric',month:'short'});
+    S.myPrices = S.myPrices||{}; S.myPrices[code] = S.myPrices[code]||{};
+    let c = 0;
+    document.querySelectorAll('[data-myprice]').forEach(inp=>{
+      const v = parseFloat((inp.value||'').replace(',','.'));
+      if(v>0){ S.myPrices[code][inp.dataset.myprice] = {p:v, d}; c++; }
+    });
+    if(!c){ $('mineStatus').innerHTML = '<div class="status s-bad">Skriv inn minst én pris først.</div>'; return; }
+    save(); applySettings(); render(); showTab('receipt');
+    $('mineStatus').innerHTML = `<div class="status s-ok">${c} ${c>1?'priser':'pris'} lagret for ${name}. Kasseprisen over er oppdatert.</div>`;
+  };
+}
+
+function renderReceipts(planned){
+  const B = S.settings.B;
+  let h = '<h2>Kvitteringer denne planen</h2>';
+  if(!S.receipts.length) h += '<div class="empty">Ingen kvitteringer lagt inn ennå.</div>';
+  else{
+    let sum = 0;
+    S.receipts.forEach((x,i)=>{ sum += x.a; h += `<div class="item"><span class="nm">Kvittering ${i+1}<small>${x.d}</small></span><span class="price">${kr(x.a)}</span><button class="btn-plain" data-del="${i}">Fjern</button></div>`; });
+    h += `<div class="total"><span>Brukt totalt</span><span>${kr(sum)}</span></div>`;
+    const diff = sum - planned, rest = B - sum;
+    const ok = rest >= 0;
+    h += `<div class="status ${ok?'s-ok':'s-bad'}"><b>${ok?'Du er innenfor budsjettet.':'Du er over budsjettet.'}</b><br>Planlagt kassepris: ${kr(planned)}<br>Faktisk brukt: ${kr(sum)} (${diff>=0?'+':''}${kr(diff)} mot planen)<br>${ok?kr(rest)+' igjen av budsjettet':kr(-rest)+' over budsjettet'}</div>`;
+  }
+  $('rhist').innerHTML = h;
+}
+
+$('make').onclick = ()=>{
+  const B = Math.max(50, +$('budget').value||600);
+  const P = +$('persons').value, N = +$('days').value;
+  const f = 1;
+  const stores = [...document.querySelectorAll('.chipbtn.on[data-store]')].map(b=>b.dataset.store);
+  if(!stores.length){ $('storeChips').scrollIntoView({behavior:'smooth',block:'center'}); $('modeNote').textContent=''; $('storeChips').insertAdjacentHTML('afterend','<div class="status s-bad" id="storeErr">Velg minst én butikk.</div>'); setTimeout(()=>{const e=$('storeErr'); if(e) e.remove();},3000); return; }
+  const modeBtn = document.querySelector('.chipbtn.on[data-mode]'); const mode = modeBtn ? modeBtn.dataset.mode : 'one';
+  const excl = [...document.querySelectorAll('.chipbtn.on[data-ex]')].map(b=>b.dataset.ex);
+  const likes = [...document.querySelectorAll('.chipbtn.on[data-like]')].map(b=>b.dataset.like);
+  S.settings = {B,P,N,f,stores,mode,code:stores[0],excl,likes,maxTime:+$('maxTime').value};
+  S.plan = buildPlan();
+  showSetup(false); S.checked = {}; S.swapIdx = {}; S.open = {}; S.receipts = [];
+  save(); render(); showTab('plan');
+  window.scrollTo({top:0,behavior:'smooth'});
+};
+function showSetup(on){
+  $('setupCard').classList.toggle('hidden', !on);
+  $('result').classList.toggle('hidden', on || !S.plan.length);
+  $('openSettings').classList.toggle('hidden', on || !S.settings);
+  $('heroDishes').classList.toggle('hidden', !on && !!S.settings);
+  document.querySelector('header').classList.toggle('compact', !on && !!S.settings);
+  if(S.settings){ $('setupTitle').textContent='Innstillinger'; $('setupIntro').textContent='Endre det du vil, og lag en ny ukeplan.'; $('cancelSettings').classList.toggle('hidden', !on); }
+}
+document.querySelectorAll('.chipbtn').forEach(b=>b.onclick=()=>{
+  if(b.dataset.mode){ document.querySelectorAll('.chipbtn[data-mode]').forEach(x=>x.classList.toggle('on', x===b)); }
+  else b.classList.toggle('on');
+  updateModeBox();
+});
+function updateModeBox(){
+  const n = document.querySelectorAll('.chipbtn.on[data-store]').length;
+  $('modeBox').classList.toggle('hidden', n<2);
+  const m = document.querySelector('.chipbtn.on[data-mode]');
+  $('modeNote').textContent = !m ? '' : m.dataset.mode==='one' ? 'Appen regner ut hele handlelisten i hver butikk og sier hvor det er billigst denne uka.' : 'Hver vare kjøpes der den er billigst. Handlelisten deles opp per butikk.';
+}
+$('openSettings').onclick = ()=>{ showSetup(true); window.scrollTo({top:0,behavior:'smooth'}); };
+$('cancelSettings').onclick = ()=>{ showSetup(false); };
+$('newPlan').onclick = ()=>{ const {B,P,N,f} = S.settings; S.recent = [...S.plan, ...(S.recent||[])].slice(0, Math.max(10, N*2)); S.plan = buildPlan(S.recent); S.checked={}; S.swapIdx={}; S.open={}; save(); render(); showTab('plan'); };
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  ['plan','list','left','receipt'].forEach(x=>$('tab-'+x).classList.toggle('hidden',x!==t));
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>showTab(b.dataset.tab));
+
+document.addEventListener('click',e=>{
+  const o = e.target.closest('[data-open]');
+  if(o){ const i=o.dataset.open; S.open[i]=!S.open[i]; save(); render(); return; }
+  const s = e.target.closest('[data-swap]');
+  if(s){
+    const i = +s.dataset.swap, {P,f} = S.settings;
+    const cands = allowedRecipes().filter(r=>!S.plan.includes(r.id)).map(r=>{ const l=[...S.plan]; l[i]=r.id; return {id:r.id,c:evaluate(l,P,f).cost}; }).sort((a,b)=>a.c-b.c);
+    if(!cands.length) return;
+    const k = (S.swapIdx[i]||0) % cands.length;
+    S.plan[i] = cands[k].id; S.swapIdx[i] = k+1; S.open[i] = false;
+    save(); render(); return;
+  }
+  const d = e.target.closest('[data-del]');
+  if(d){ S.receipts.splice(+d.dataset.del,1); save(); render(); }
+});
+document.addEventListener('change',e=>{
+  const c = e.target.closest('[data-check]');
+  if(c){ S.checked[c.dataset.check]=c.checked; save(); render(); showTab('list'); }
+});
+document.addEventListener('change',e=>{
+  const ph = e.target.closest('[data-photo]');
+  if(!ph || !ph.files || !ph.files[0]) return;
+  const id = ph.dataset.photo, img = new Image();
+  img.onload = ()=>{
+    const w = Math.min(700, img.width), hh = Math.round(img.height*w/img.width);
+    const c = document.createElement('canvas'); c.width=w; c.height=hh;
+    c.getContext('2d').drawImage(img,0,0,w,hh);
+    S.photos = S.photos||{}; S.photos[id] = c.toDataURL('image/jpeg',0.72);
+    save(); render(); URL.revokeObjectURL(img.src);
+  };
+  img.src = URL.createObjectURL(ph.files[0]);
+});
+let noteTimer;
+document.addEventListener('input',e=>{
+  const n = e.target.closest('[data-note]');
+  if(n){ S.notes[n.dataset.note]=n.value; clearTimeout(noteTimer); noteTimer=setTimeout(()=>{save(); const el=$('saved-'+n.dataset.note); if(el) el.textContent='Lagret';},400); }
+});
+
+$('rimg').onchange = e=>{
+  const file = e.target.files && e.target.files[0]; if(!file) return;
+  const url = URL.createObjectURL(file); const img = $('rprev'); img.src = url; img.classList.remove('hidden');
+};
+$('rsave').onclick = ()=>{
+  const a = parseFloat(($('ramount').value||'').replace(',','.'));
+  if(!a || a<=0){ $('rstatus').innerHTML = '<div class="status s-bad">Skriv inn totalbeløpet fra kvitteringen først.</div>'; return; }
+  S.receipts.push({a, d:new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long'})});
+  $('ramount').value=''; $('rstatus').innerHTML='';
+  save(); render(); showTab('receipt');
+};
+
+$('heroDishes').innerHTML = dishSvg('taco') + dishSvg('bolo') + dishSvg('laks');
+load();
+if(S.settings){ $('budget').value=S.settings.B; $('persons').value=S.settings.P; $('days').value=S.settings.N; if(!S.settings.code){ S.settings.code='SPAR_NO'; S.settings.f=1; } if(!S.settings.stores){ S.settings.stores=[S.settings.code]; S.settings.mode='one'; } S.settings.stores.forEach(c=>{ const b=document.querySelector('[data-store="'+c+'"]'); if(b) b.classList.add('on'); }); { const b=document.querySelector('[data-mode="'+(S.settings.mode||'one')+'"]'); if(b) b.classList.add('on'); } $('maxTime').value=String(S.settings.maxTime||999); (S.settings.excl||[]).forEach(e=>{ const b=document.querySelector('[data-ex="'+e+'"]'); if(b) b.classList.add('on'); }); (S.settings.likes||[]).forEach(e=>{ const b=document.querySelector('[data-like="'+e+'"]'); if(b) b.classList.add('on'); }); }
+if(!S.settings){ document.querySelector('[data-store="SPAR_NO"]').classList.add('on'); document.querySelector('[data-mode="one"]').classList.add('on'); }
+updateModeBox();
+applySettings();
+render();
+showSetup(!S.settings || !S.plan.length);
+</script>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}</script>
+</body>
+</html>
