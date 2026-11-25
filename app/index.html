@@ -184,6 +184,18 @@ header.compact::after{display:none}
 .cook-prev:disabled{opacity:.3}
 .cook-hint{text-align:center;font-size:12px;opacity:.5;margin:10px 0 0}
 body.cooking{overflow:hidden}
+
+/* Kvitteringsleser */
+.ocr-row{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.ocr-row .raw{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);grid-column:1/-1;display:flex;justify-content:space-between;gap:8px}
+.ocr-row select{font-size:14px;padding:8px 10px}
+.ocr-row input{text-align:right;font-size:14px;padding:8px 10px}
+.ocr-row.match select{border-color:var(--green);background:var(--green-soft)}
+.ocr-prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}
+.ocr-prog div{height:100%;width:0;background:var(--green);transition:width .3s}
+.rc-items{margin:4px 0 8px;padding:8px 12px;background:#fafbf9;border-radius:10px;font-size:13px}
+.rc-items div{display:flex;justify-content:space-between;padding:3px 0}
+.rc-items summary{cursor:pointer;font-weight:600;color:var(--green);padding:4px 0}
 </style>
 </head>
 <body>
@@ -282,9 +294,11 @@ body.cooking{overflow:hidden}
         <label for="rimg">Bilde av kvitteringen</label>
         <input id="rimg" type="file" accept="image/*">
         <img id="rprev" class="receipt-img hidden" alt="Kvittering">
+        <button class="btn hidden" id="rread">Les varene fra kvitteringen</button>
+        <div id="rocr"></div>
         <div style="margin-top:12px"><label for="ramount">Totalbeløp på kvitteringen (kr)</label><input id="ramount" type="text" inputmode="decimal" placeholder="For eksempel 587"></div>
         <button class="btn" id="rsave">Sjekk mot budsjettet</button>
-        <p class="note">I neste versjon leser appen beløpet fra bildet automatisk. Nå skriver du inn totalen selv.</p>
+        <p class="note">Appen leser varer og priser fra bildet på telefonen din. Bildet sendes ikke noe sted. Ta bildet rett ovenfra i godt lys, og sjekk alltid linjene før du lagrer.</p>
         <div id="rstatus"></div>
       </div>
       <div class="card" id="myprices"></div>
@@ -784,7 +798,8 @@ function renderReceipts(planned){
   if(!S.receipts.length) h += '<div class="empty">Ingen kvitteringer lagt inn ennå.</div>';
   else{
     let sum = 0;
-    S.receipts.forEach((x,i)=>{ sum += x.a; h += `<div class="item"><span class="nm">Kvittering ${i+1}<small>${x.d}</small></span><span class="price">${kr(x.a)}</span><button class="btn-plain" data-del="${i}">Fjern</button></div>`; });
+    S.receipts.forEach((x,i)=>{ sum += x.a; h += `<div class="item"><span class="nm">Kvittering ${i+1}<small>${x.d}${x.s?' · '+storeName(x.s):''}</small></span><span class="price">${kr(x.a)}</span><button class="btn-plain" data-del="${i}">Fjern</button></div>`;
+      if(x.items && x.items.length) h += `<details class="rc-items"><summary>Se hva du betalte per vare (${x.items.length})</summary>${x.items.map(it=>`<div><span>${it.q>1?it.q+' x ':''}${ocrEsc(it.k?ING[it.k].n:it.n)}</span><span>${kr(it.p)}</span></div>`).join('')}</details>`; });
     h += `<div class="total"><span>Brukt totalt</span><span>${kr(sum)}</span></div>`;
     const diff = sum - planned, rest = B - sum;
     const ok = rest >= 0;
@@ -878,11 +893,113 @@ document.addEventListener('input',e=>{
 $('rimg').onchange = e=>{
   const file = e.target.files && e.target.files[0]; if(!file) return;
   const url = URL.createObjectURL(file); const img = $('rprev'); img.src = url; img.classList.remove('hidden');
+  OCR.file = file; OCR.rows = null; $('rocr').innerHTML = ''; $('rread').classList.remove('hidden');
 };
+
+// Kvitteringsleser: leser varelinjer og priser fra bildet, lokalt på telefonen
+const OCR = {file:null, rows:null, total:null};
+function ocrEsc(x){ return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function ocrNum(x){ return Math.round(x*100)/100; }
+function loadTesseract(){
+  if(window.Tesseract) return Promise.resolve();
+  return new Promise((ok,bad)=>{ const sc=document.createElement('script'); sc.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'; sc.onload=ok; sc.onerror=()=>bad(new Error('nett')); document.head.appendChild(sc); });
+}
+function prepImage(file){
+  return new Promise((ok,bad)=>{ const im = new Image(); im.onload=()=>{
+    const w = Math.min(1800, Math.max(1000, im.width)), h = Math.round(im.height*w/im.width);
+    const c = document.createElement('canvas'); c.width=w; c.height=h; const x = c.getContext('2d');
+    x.drawImage(im,0,0,w,h); const d = x.getImageData(0,0,w,h), a = d.data;
+    for(let i=0;i<a.length;i+=4){ let g = .3*a[i]+.59*a[i+1]+.11*a[i+2]; g = Math.max(0,Math.min(255,(g-128)*1.6+150)); a[i]=a[i+1]=a[i+2]=g; }
+    x.putImageData(d,0,0); c.toBlob(ok,'image/png'); URL.revokeObjectURL(im.src);
+  }; im.onerror=bad; im.src = URL.createObjectURL(file); });
+}
+function parseReceipt(text){
+  const items = []; let total = null, pend = 1;
+  const SKIP = /\bpant\b|mva|bank|kort|visa|master|veksel|kontant|betalt|bax|ref\b|org|tlf|telefon|dato|kasse|kvittering|subtotal|avrund|bonus|trumf|poeng|medlem|kunde|terminal|kjøp|godkjent|saldo|gjenst|rabatt|tilbud|æ|sparer|spart/i;
+  for(const raw of text.split('\n')){
+    const line = raw.replace(/\s+/g,' ').trim(); if(!line) continue;
+    const qm = line.match(/^(\d{1,2})\s*[x×*]\s*(\d{1,4}[.,]\d{2})(?:\s+(\d{1,4}[.,]\d{2}))?$/i);
+    if(qm){ const q=+qm[1], u=+qm[2].replace(',','.'), last=items[items.length-1];
+      if(last && Math.abs(last.p - q*u) < .06){ last.q=q; } else pend=q; continue; }
+    const m = line.match(/^(.*?)[\s:.]*(-?\d{1,4}[.,]\d{2})\s*-?\s*[A-Za-z%]{0,2}\s*$/);
+    if(!m) continue;
+    let name = m[1].replace(/[^A-Za-zÆØÅæøåÉé0-9 %.,*x]/g,' ').replace(/\s+/g,' ').trim();
+    let price = parseFloat(m[2].replace(',','.'));
+    if(/\b(total|totalt|totalsum|å betale|a betale|aa betale|til betaling|sum)\b/i.test(name)){ if(price>0) total = Math.max(total||0, price); continue; }
+    if(price < 0 || /rabatt|tilbud/i.test(name)){ const last=items[items.length-1]; if(last && price<0) last.p = ocrNum(last.p+price); continue; }
+    if(SKIP.test(name) || !/[A-Za-zÆØÅæøå]{3}/.test(name) || price > 2000) continue;
+    let q = pend; pend = 1;
+    const iq = name.match(/(\d{1,2})\s*[x×*]\s*\d{1,4}[.,]\d{2}/i); if(iq){ q=+iq[1]; name=name.replace(iq[0],'').trim(); }
+    name = name.replace(/\s\d{1,2}\s?%$/,'').replace(/\s+\d+$/,'').trim();
+    items.push({n:name, p:price, q});
+  }
+  return {items, total};
+}
+function ocrNorm(s){ return s.toLowerCase().replace(/[^a-zæøå0-9 ]/g,' '); }
+function guessIng(name, keys){
+  const t = ocrNorm(name), t2 = t.replace(/ø/g,'o').replace(/æ/g,'ae').replace(/å/g,'a'); let best=null, bs=0;
+  for(const k of keys){
+    const words = [k, ...ocrNorm(ING[k].n).split(/[\s,]+/)].filter(w=>w.length>=3);
+    for(const w of words){ const ww = w.slice(0,7), w2 = ww.replace(/ø/g,'o').replace(/æ/g,'ae').replace(/å/g,'a');
+      const hit = ww.length>=4 ? (t.includes(ww) || t2.includes(w2)) : new RegExp('(^| )'+ww+'( |$)').test(t);
+      if(hit && ww.length>bs){ bs=ww.length; best=k; } }
+  }
+  return best;
+}
+function renderOcr(){
+  const ev = evaluate(S.plan, S.settings.P, S.settings.f);
+  const planKeys = Object.keys(ev.buy).sort((a,b)=>ING[a].n.localeCompare(ING[b].n,'nb'));
+  const otherKeys = Object.keys(ING).filter(k=>!ev.buy[k]).sort((a,b)=>ING[a].n.localeCompare(ING[b].n,'nb'));
+  const opt = (sel)=>`<option value="">Ikke i planen</option><optgroup label="I handlelisten">${planKeys.map(k=>`<option value="${k}" ${k===sel?'selected':''}>${ING[k].n} (${ING[k].l})</option>`).join('')}</optgroup><optgroup label="Andre varer">${otherKeys.map(k=>`<option value="${k}" ${k===sel?'selected':''}>${ING[k].n} (${ING[k].l})</option>`).join('')}</optgroup>`;
+  const sum = OCR.rows.reduce((t,r)=>t+r.p,0);
+  const matched = OCR.rows.filter(r=>r.k).length;
+  let h = `<h2 style="margin-top:18px">Dette betalte du per vare</h2><p class="note" style="margin-top:-6px">Fant ${OCR.rows.length} varer, ${matched} er koblet til handlelisten. Sjekk navn og pris, og velg riktig vare der det mangler. Prisen er per stk.</p>`;
+  OCR.rows.forEach((r,i)=>{
+    const unit = ocrNum(r.p/(r.q||1)), plan = r.k ? ING[r.k].p : null;
+    const diff = plan!=null ? unit-plan : null;
+    h += `<div class="ocr-row ${r.k?'match':''}"><div class="raw"><span>${r.q>1?r.q+' x ':''}${ocrEsc(r.n)}</span><span>${kr(r.p)}</span></div><select data-ok="${i}">${opt(r.k)}</select><input data-op="${i}" type="text" inputmode="decimal" value="${String(unit).replace('.',',')}">${diff!=null&&Math.abs(diff)>=1?`<div class="note" style="grid-column:1/-1;margin:0">${diff>0?'Dyrere':'Billigere'} enn appen regnet med (${kr(plan)})</div>`:''}</div>`;
+  });
+  h += `<div class="total"><span>Sum av linjene</span><span>${kr(sum)}</span></div>`;
+  if(OCR.total) h += `<p class="note">Totalen på kvitteringen: ${kr(OCR.total)}${Math.abs(OCR.total-sum)>1?'. Avviket er linjer appen ikke klarte å lese, eller pant og rabatter.':'.'}</p>`;
+  h += `<button class="btn" id="ocrSave">Lagre kvitteringen og prisene</button>`;
+  $('rocr').innerHTML = h;
+  $('rocr').querySelectorAll('[data-ok]').forEach(el=>el.onchange=()=>{ OCR.rows[+el.dataset.ok].k = el.value||null; renderOcr(); });
+  $('rocr').querySelectorAll('[data-op]').forEach(el=>el.onchange=()=>{ const v=parseFloat(el.value.replace(',','.')); if(v>0){ const r=OCR.rows[+el.dataset.op]; r.p = ocrNum(v*(r.q||1)); renderOcr(); } });
+  $('ocrSave').onclick = ()=>{
+    const code = S.priceStore || S.settings.code, d = new Date().toLocaleDateString('nb-NO',{day:'numeric',month:'short'});
+    S.myPrices = S.myPrices||{}; S.myPrices[code] = S.myPrices[code]||{};
+    let c = 0; OCR.rows.forEach(r=>{ if(r.k){ S.myPrices[code][r.k] = {p:ocrNum(r.p/(r.q||1)), d}; c++; } });
+    const typed = parseFloat(($('ramount').value||'').replace(',','.'));
+    const a = typed>0 ? typed : (OCR.total || ocrNum(sum));
+    S.receipts.push({a, s:code, d:new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long'}), items:OCR.rows.map(r=>({n:r.n,k:r.k,p:r.p,q:r.q}))});
+    OCR.rows=null; OCR.file=null; $('ramount').value=''; $('rimg').value=''; $('rprev').classList.add('hidden'); $('rread').classList.add('hidden');
+    save(); applySettings(); render(); showTab('receipt');
+    $('rocr').innerHTML = `<div class="status s-ok">Kvitteringen er lagret. ${c} ${c===1?'pris':'priser'} er oppdatert for ${storeName(code)}, og neste ukeplan bruker det du faktisk betalte.</div>`;
+  };
+}
+async function readReceipt(file){
+  $('rread').disabled = true;
+  $('rocr').innerHTML = `<div class="status s-ok" id="ocrMsg">Gjør klar leseren. Første gang tar dette litt tid.</div><div class="ocr-prog"><div id="ocrBar"></div></div>`;
+  try{
+    await loadTesseract();
+    const img = await prepImage(file);
+    const w = await Tesseract.createWorker('nor', 1, {logger:m=>{ if(m.status==='recognizing text'){ const b=$('ocrBar'), t=$('ocrMsg'); if(b) b.style.width=Math.round(m.progress*100)+'%'; if(t) t.textContent='Leser kvitteringen …'; } }});
+    const {data} = await w.recognize(img); await w.terminate();
+    const res = parseReceipt(data.text);
+    if(!res.items.length){ $('rocr').innerHTML = '<div class="status s-bad">Fant ingen varelinjer. Prøv et skarpere bilde tatt rett ovenfra, eller skriv inn totalen under.</div>'; return; }
+    const ev = evaluate(S.plan, S.settings.P, S.settings.f), keys = [...Object.keys(ev.buy), ...Object.keys(ING).filter(k=>!ev.buy[k])];
+    OCR.rows = res.items.map(it=>({...it, k:guessIng(it.n, keys)})); OCR.total = res.total;
+    if(res.total && !$('ramount').value) $('ramount').value = String(res.total).replace('.',',');
+    renderOcr();
+  }catch(err){
+    $('rocr').innerHTML = `<div class="status s-bad">${err && err.message==='nett' ? 'Leseren trenger internett første gang. Prøv igjen når du er på nett.' : 'Klarte ikke å lese bildet. Prøv et nytt bilde, eller skriv inn totalen under.'}</div>`;
+  }finally{ $('rread').disabled = false; }
+}
+$('rread').onclick = ()=>{ if(OCR.file) readReceipt(OCR.file); };
 $('rsave').onclick = ()=>{
   const a = parseFloat(($('ramount').value||'').replace(',','.'));
   if(!a || a<=0){ $('rstatus').innerHTML = '<div class="status s-bad">Skriv inn totalbeløpet fra kvitteringen først.</div>'; return; }
-  S.receipts.push({a, d:new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long'})});
+  S.receipts.push({a, s:S.priceStore||S.settings.code, d:new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long'})});
   $('ramount').value=''; $('rstatus').innerHTML='';
   save(); render(); showTab('receipt');
 };

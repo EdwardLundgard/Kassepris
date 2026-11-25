@@ -1,6 +1,6 @@
 // Kassepris service worker: gjør appen tilgjengelig uten nett.
 // Øk versjonsnummeret hver gang du legger ut en ny versjon.
-const VERSJON = 'kassepris-v2';
+const VERSJON = 'kassepris-v3';
 const FILER = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
