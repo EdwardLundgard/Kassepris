@@ -2,7 +2,7 @@
 <html lang="no">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -42,7 +42,7 @@ h1{font-size:26px;margin:0;font-weight:800;letter-spacing:-.02em}
 .card h2{font-size:15px;margin:0 0 12px;font-weight:700}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 label{font-size:12px;color:var(--muted);font-weight:600;display:block;margin-bottom:4px}
-input,select,textarea{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafbf9;color:var(--ink)}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fafbf9;color:var(--ink)}
 textarea{min-height:70px;resize:vertical}
 button{font:inherit;cursor:pointer;border:none;border-radius:11px;padding:12px 14px;font-weight:600;font-size:15px}
 .btn{background:var(--green);color:#fff;width:100%;margin-top:12px}
@@ -188,14 +188,19 @@ body.cooking{overflow:hidden}
 /* Kvitteringsleser */
 .ocr-row{display:grid;grid-template-columns:1fr 92px;gap:6px 10px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .ocr-row .raw{font-size:13px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;color:var(--muted);grid-column:1/-1;display:flex;justify-content:space-between;gap:8px}
-.ocr-row select{font-size:14px;padding:8px 10px}
-.ocr-row input{text-align:right;font-size:14px;padding:8px 10px}
+.ocr-row select{font-size:16px;padding:8px 10px}
+.ocr-row input{text-align:right;font-size:16px;padding:8px 10px}
 .ocr-row.match select{border-color:var(--green);background:var(--green-soft)}
 .ocr-prog{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}
 .ocr-prog div{height:100%;width:0;background:var(--green);transition:width .3s}
 .rc-items{margin:4px 0 8px;padding:8px 12px;background:#fafbf9;border-radius:10px;font-size:13px}
 .rc-items div{display:flex;justify-content:space-between;padding:3px 0}
 .rc-items summary{cursor:pointer;font-weight:600;color:var(--green);padding:4px 0}
+
+/* Hindre utilsiktet zoom på mobil */
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,input,select,textarea,label,.chip,.chipbtn{touch-action:manipulation}
+input,select,textarea{font-size:16px !important}
 </style>
 </head>
 <body>
